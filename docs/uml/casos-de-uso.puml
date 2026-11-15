@@ -1,0 +1,93 @@
+@startuml casos-de-uso
+!pragma layout smetana
+left to right direction
+
+<style>
+document {
+  BackgroundColor #FFFFFF
+}
+title {
+  FontName SansSerif
+  FontSize 16
+  FontStyle bold
+  FontColor #1F4E78
+}
+rectangle {
+  LineColor #1F4E78
+  LineThickness 2
+  BackgroundColor #F8FAFC
+  FontColor #1F4E78
+  FontStyle bold
+  FontSize 13
+}
+usecase {
+  BackgroundColor #E8F1FA
+  BorderColor #2563EB
+  FontColor #0F172A
+  FontSize 11
+  RoundCorner 12
+}
+actor {
+  BackgroundColor #EEF2FF
+  BorderColor #1E40AF
+  FontColor #0F172A
+  FontSize 11
+  FontStyle bold
+}
+arrow {
+  LineColor #334155
+  FontColor #1E293B
+  FontSize 10
+}
+</style>
+
+title Vista de Escenarios (+1) — Diagrama de Casos de Uso UML 2.5.1\nSistema de Trazabilidad TI — COAC Padre Julián Lorente
+
+' === ACTORES PRIMARIOS (IZQUIERDA) ===
+actor "Tiempo\n(Temporizador CRON)" as Tiempo
+actor "Jefe de Desarrollo / PMO" as Jefatura
+
+' === LÍMITE DEL SISTEMA (CAJA NEGRA - NIVEL DEL MAR) ===
+rectangle "Sistema de Trazabilidad TI — COAC Padre Julián Lorente" {
+  usecase "CU-01: Sincronizar y consolidar\ntrazabilidad e indicadores" as CU01
+  usecase "CU-02: Emitir alerta\noperativa" as CU02
+
+  usecase "CU-03: Autenticar\nusuario" as CU03
+  usecase "CU-04: Consultar tablero\nde control" as CU04
+  usecase "CU-05: Filtrar indicadores\ndel tablero" as CU05
+  usecase "CU-06: Auditar trazabilidad\nde causa raíz" as CU06
+  usecase "CU-07: Gestionar alerta\noperativa" as CU07
+  usecase "CU-08: Exportar reporte\ntrimestral" as CU08
+}
+
+' === ACTORES SECUNDARIOS / DE APOYO (DERECHA) ===
+actor "Redmine" as Redmine <<External System>>
+actor "GLPI" as GLPI <<External System>>
+actor "GitLab" as GitLab <<External System>>
+actor "SonarQube" as SonarQube <<External System>>
+actor "Canal de Mensajería\nCorporativo" as Chat <<External System>>
+actor "Servicio de Correo\nCorporativo" as Correo <<External System>>
+
+' === ASOCIACIONES DE ACTORES PRIMARIOS ===
+Tiempo -- CU01
+
+Jefatura -- CU03
+Jefatura -- CU04
+Jefatura -- CU06
+Jefatura -- CU07
+Jefatura -- CU08
+
+' === EXTENSIONES UML 2.5.1 ESTRICTAMENTE JUSTIFICADAS ===
+CU02 ..> CU01 : <<extend>>\n[umbral crítico superado]
+CU05 ..> CU04 : <<extend>>\n[análisis focalizado]
+
+' === ASOCIACIONES CON ACTORES SECUNDARIOS ===
+CU01 -- Redmine
+CU01 -- GLPI
+CU01 -- GitLab
+CU01 -- SonarQube
+
+CU02 -- Chat
+CU02 -- Correo
+
+@enduml

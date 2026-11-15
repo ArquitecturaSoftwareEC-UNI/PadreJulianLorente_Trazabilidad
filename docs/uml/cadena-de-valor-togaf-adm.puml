@@ -1,0 +1,143 @@
+@startuml cadena-de-valor-togaf-adm
+!pragma layout smetana
+top to bottom direction
+skinparam nodesep 20
+skinparam ranksep 34
+skinparam padding 12
+
+<style>
+document {
+  BackgroundColor #FFFFFF
+}
+title {
+  FontName SansSerif
+  FontSize 16
+  FontStyle bold
+  FontColor #1F4E78
+  HorizontalAlignment center
+}
+footer {
+  FontName SansSerif
+  FontSize 10
+  FontColor #475569
+  HorizontalAlignment center
+}
+rectangle {
+  LineColor #1F4E78
+  LineThickness 2
+  BackgroundColor #F8FAFC
+  FontColor #1F4E78
+  FontStyle bold
+  FontSize 12
+  RoundCorner 10
+  HorizontalAlignment center
+}
+card {
+  FontColor #0F172A
+  FontSize 11
+  LineThickness 1.5
+  RoundCorner 10
+  HorizontalAlignment center
+}
+arrow {
+  LineColor #1F4E78
+  LineThickness 1.8
+  FontColor #1E293B
+  FontSize 10
+  FontStyle bold
+}
+</style>
+
+title Cadena de Valor y Arquitectura Empresarial (TOGAF ADM)\nSistema de Trazabilidad TI — COAC Padre Julián Lorente
+
+' === BLOQUE SUPERIOR: ACTIVIDADES PRIMARIAS (TOGAF FASE B) ===
+rectangle "ACTIVIDADES PRIMARIAS — FLUJO OPERATIVO DE VALOR · TOGAF Fase B" as F_PRIMARIAS #F8FAFC {
+  card P1 #E0F2FE;line:0284C7;text:0F172A [
+    <b>1. Demanda y Origen</b>
+    Épicas POA/PETI, specs REQ
+    e incidentes GLPI por módulo
+    financiero.
+  ]
+
+  card P2 #E0F2FE;line:0284C7;text:0F172A [
+    <b>2. Planificación (Redmine)</b>
+    Tareas #ID, estimación
+    Fibonacci, fechas y
+    capacidad base 40 h.
+  ]
+
+  card P3 #E0F2FE;line:0284C7;text:0F172A [
+    <b>3. Construcción y Calidad</b>
+    Ramas, commits tipados,
+    QA cruzado y análisis
+    SonarQube.
+  ]
+
+  card P4 #FFE082;line:D97706;text:0F172A [
+    <b>4. Correlación Core (CU-01)</b>
+    Ingesta cada 5 min en solo
+    lectura, filtro LOPDP y
+    enlace de 4 niveles.
+  ]
+
+  card P5 #FFE082;line:D97706;text:0F172A [
+    <b>5. Métricas y Alertas (CU-02)</b>
+    Carga real, avance verificado,
+    eficiencia, 5 etapas y avisos
+    anti-spam.
+  ]
+
+  card P6 #E0F2FE;line:0284C7;text:0F172A [
+    <b>6. Gobierno y Decisión PMO</b>
+    Tablero único, filtros,
+    causa raíz y reportes
+    (CU-03 a CU-08).
+  ]
+}
+
+' === BLOQUE INFERIOR ÚNICO: ACTIVIDADES DE SOPORTE Y ARQUITECTURA TOGAF ADM ===
+rectangle "ACTIVIDADES DE SOPORTE Y ARQUITECTURA TOGAF ADM (FASES PRELIMINAR, A, C–H)" as F_SOPORTE #F8FAFC {
+  card S1 #E8F1FA;line:1F4E78;text:0F172A [
+    <b>Visión y Gobierno (Preliminar, A y G)</b>
+    Transición As-Is a To-Be, estándar de IDs,
+    commits tipados y auditoría reproducible.
+  ]
+
+  card S2 #E8F1FA;line:1F4E78;text:0F172A [
+    <b>Datos, Aplicaciones y LOPDP (Fases B–C)</b>
+    Redmine, GLPI, GitLab y SonarQube hacia Sistema de
+    Trazabilidad, Canales de Alerta y enmascaramiento de socios.
+  ]
+
+  card S3 #E8F1FA;line:1F4E78;text:0F172A [
+    <b>Tecnología y Solo Lectura (Fase D)</b>
+    Aislamiento institucional en solo lectura,
+    transporte cifrado y ejecución periódica CRON.
+  ]
+
+  card S4 #E8F1FA;line:1F4E78;text:0F172A [
+    <b>Resiliencia y Evolución (Fases E–H)</b>
+    Adaptadores desacoplados, snapshot parcial ante caídas,
+    retención de 24 meses y evolución sin alterar el dominio.
+  ]
+}
+
+' === ÚNICAS FLECHAS VISIBLES: FLUJO HORIZONTAL DE VALOR ===
+P1 -right-> P2
+P2 -right-> P3
+P3 -right-> P4
+P4 -right-> P5
+P5 -right-> P6
+
+' === ALINEACIÓN HORIZONTAL Y VERTICAL OCULTA (CERO FLECHAS VERTICALES) ===
+S1 -[hidden]right-> S2
+S2 -[hidden]right-> S3
+S3 -[hidden]right-> S4
+
+P1 -[hidden]down-> S1
+P3 -[hidden]down-> S2
+P4 -[hidden]down-> S3
+P6 -[hidden]down-> S4
+
+footer Cadena de Valor TOGAF ADM — Alineada con la Vista +1 (CU-01 a CU-08) en docs/uml/casos-de-uso.puml
+@enduml

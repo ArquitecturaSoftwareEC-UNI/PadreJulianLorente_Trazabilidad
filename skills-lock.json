@@ -1,0 +1,11 @@
+{
+  "version": 2,
+  "skills": {
+    "plantuml": {
+      "source": "SpillwaveSolutions/plantuml",
+      "sourceType": "github",
+      "skillPath": "SKILL.md",
+      "computedHash": "e818cd02c5e78a6c95f59cb197ab11c18c94cc63b647e9a47dbd53690028f487"
+    }
+  }
+}
