@@ -39,7 +39,7 @@ npx skills add vercel-labs/agent-skills --skill vercel-react-best-practices
 ```
 
 ### 2.4 Pruebas Unitarias y Desarrollo Guiado por Pruebas (TDD)
-Disciplina Rojo-Verde-Refactor para validar con 100 % de exactitud matemática las reglas del dominio (`RF-001`..`RF-005` Fibonacci `2/5/13`, base `40 h` con `GLPI` `4h/8h` y QA `2h`, eficiencia `70 %/30 %` con `-10`/`-5` pts; `RF-013`..`RF-022` cruce tolerante `GLPI #ID`, retornos y trabajo sin trazabilidad; `RF-038` respaldo en código `> 25 %` y `100 %`; `RF-023`..`RF-028` supresión anti-spam 24 h y filtros; y compuerta LOPDP 2021 `RNF-017`):
+Disciplina Rojo-Verde-Refactor para validar las reglas del dominio: cobertura de fórmulas y etapas (`RF-001`..`RF-005` y `RF-019`: Fibonacci `2/5/13`, base `40 h` con `GLPI` `4 h/8 h` y QA `2 h`, eficiencia `70 %/30 %` con `-10`/`-5` pts y 5 etapas oficiales), correlación y trazabilidad (`RF-012`..`RF-018`, `RF-020`..`RF-022` y `RF-033`: 4 niveles, 6 módulos financieros, cruce tolerante `GLPI #ID`, retornos, divergencia y actividades sin trazabilidad), respaldo real en código (`RF-037`..`RF-038`: `> 25 %` y `100 %`), alertas y gestión (`RF-023`..`RF-027` y `RF-031`: disparadores, supresión anti-spam `24 h`, canales corporativos y cierre de alertas), filtrado multidimensional (`RF-008`..`RF-009`, `RF-028` y `RF-039`: intersección, retiro selectivo y cero coincidencias), además de la compuerta LOPDP 2021 (`RNF-017`) y reproducibilidad matemática inmutable (`RNF-001`):
 ```bash
 npx skills add obra/superpowers --skill test-driven-development
 ```
