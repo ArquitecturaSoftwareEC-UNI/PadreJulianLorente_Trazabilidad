@@ -14,7 +14,7 @@ La Vista Lógica define **CON QUÉ CONCEPTOS** el sistema satisface los requisit
 2. **Nivel de Especificación (Compromisos de Diseño Lógico):**
    - Evoluciona las clases del dominio incorporando:
      - **Visibilidad UML:** `+` (público), `-` (privado), `#` (protegido), `~` (paquete).
-     - **Atributos tipados abstractamente:** `visibilidad nombre : tipo [multiplicidad] = valorPorDefecto` (ej. `- umbralHoras : Decimal = 40.0`).
+     - **Atributos tipados abstractamente:** `visibilidad nombre : tipo [multiplicidad] = valorPorDefecto` (ej. `- umbralCargaSemanalHoras : Decimal = 40.0`).
      - **Operaciones con firma completa:** `visibilidad nombre(parámetro : tipo) : tipoRetorno`.
      - **Multiplicidades exactas** en ambos extremos de cada relación.
 
@@ -22,10 +22,10 @@ La Vista Lógica define **CON QUÉ CONCEPTOS** el sistema satisface los requisit
 Violar cualquiera de estas exclusiones invalida el artefacto arquitectónico:
 
 1. **NO es una base de datos física:** Prohibido modelar tablas SQL, tipos propios de motor (`VARCHAR`, `INT8`, `SERIAL`, `JSONB`, `TIMESTAMPTZ`) o simular claves foráneas (`FK`, ej. `idDesarrollador`, `idProyecto`) como atributos dentro de las clases. Las asociaciones entre objetos se representan **únicamente** mediante líneas de relación UML y multiplicidades.
-2. **NO contiene infraestructura de despliegue:** Prohibido incluir servidores, nodos físicos, contenedores Docker, balanceadores o puertos.
+2. **NO contiene infraestructura de despliegue:** Prohibido incluir servidores, nodos físicos, contenedores, balanceadores o puertos.
 3. **NO organiza archivos de código ni concurrencia:** No modela carpetas/capas de frameworks (eso pertenece a la Vista de Desarrollo, Semana 6) ni hilos, colas o procesos paralelos (eso pertenece a la Vista de Procesos, Semana 5).
-4. **NO incluye interfaz gráfica (UI):** Prohibido modelar pantallas, formularios, modales, botones, filtros visuales ni reportes CSV/PDF como clases del dominio.
-5. **Prohibición de atributos derivables sin marcar:** Evitar almacenar datos calculables como atributos fijos; si un atributo derivado es indispensable a nivel lógico, debe prefijarse obligatoriamente con barra inclinada `/` (ej. `- /porcentajeAvance : Decimal`, `- /indiceSobrecarga : Entero`).
+4. **NO incluye interfaz gráfica (UI):** Prohibido modelar pantallas, formularios, modales, botones, filtros visuales ni archivos exportados como clases del dominio.
+5. **Prohibición de atributos derivables sin marcar:** Evitar almacenar datos calculables como atributos fijos; si un atributo derivado es indispensable a nivel lógico, debe prefijarse obligatoriamente con barra inclinada `/` (ej. `- /porcentajeOcupacionSemanal : Decimal`, `- /eficienciaDesarrollador : Decimal`).
 
 ### 1.3 Extracción y Decodificación Gramatical (desde la Vista +1)
 El insumo obligatorio son las especificaciones de Casos de Uso de Semana 3 (`docs/especificaciones-casos-de-uso.md`):
@@ -42,15 +42,15 @@ El insumo obligatorio son las especificaciones de Casos de Uso de Semana 3 (`doc
 #### Descartes inmediatos
 Antes de aplicar los filtros, descartar de la lista de candidatos:
 - **Sinónimos:** Conservar únicamente el término canónico del glosario del proyecto.
-- **Actores externos cuya historia interna no gestiona el sistema:** Ej. *Redmine*, *GitLab*, *GLPI*, *SonarQube*, *Discord/Slack*, *Servidor SMTP* o *Temporizador ETL* no se modelan como entidades de negocio salvo que el sistema almacene configuración/registro lógico propio de una *FuenteExterna* o *CredencialIntegracion*.
-- **Elementos de UI y reportes:** Pantallas, vistas, gráficas, botones, archivos CSV/PDF exportados.
-- **Operaciones disfrazadas de sustantivos:** Acciones como "búsqueda", "filtrado" o "cálculo" son operaciones de alguna clase, no clases por sí mismas (a diferencia de un evento auditable con identidad y estado propios, como un `CicloSincronizacion` o una `AlertaOperativa`).
+- **Actores externos cuya historia interna no gestiona el sistema:** Actores como `Redmine`, `GLPI`, `GitLab`, `SonarQube`, `Canal de Mensajería Corporativo`, `Servicio de Correo Corporativo` o `Tiempo (Temporizador CRON)` interactúan en frontera del sistema y no se modelan como entidades internas del dominio, salvo los registros o estados consolidados propios que el sistema sí administra (por ejemplo, instantáneas por fuente origen o configuración lógica de canales).
+- **Elementos de UI y reportes:** Pantallas, vistas, tarjetas visuales, botones o archivos exportados.
+- **Operaciones disfrazadas de sustantivos:** Acciones como "filtrado", "autenticación" o "depuración" son operaciones de alguna clase, no clases por sí mismas (a diferencia de un evento auditable con identidad, retención y estado propios, como un `CicloSincronizacion`, un `RegistroAuditoriaCalculo` o una `AlertaOperativa`).
 
 #### Árbol de 4 Filtros Secuenciales
 Todo candidato sobreviviente debe superar **los 4 filtros** para convertirse en clase del Diagrama de Clases:
 
-1. **Filtro 1 — Memoria / Persistencia Conceptual:** ¿El sistema necesita recordar información de este concepto entre ejecuciones o a lo largo del tiempo? *(Los parámetros transitorios de entrada, como "rango de fechas" o "criterio de búsqueda", se descartan como clases).*
-2. **Filtro 2 — Complejidad Estructural:** ¿Posee más de un atributo relevante propio? *(Si es un valor atómico único, como `correo` o `umbralDias`, pasa a ser atributo de una clase existente).*
+1. **Filtro 1 — Memoria / Persistencia Conceptual:** ¿El sistema necesita recordar información de este concepto entre ejecuciones o a lo largo del tiempo (incluyendo la retención de 12–24 meses exigida por `RNF-001` y `RNF-017`)? *(Los parámetros transitorios de entrada, como "rango de fechas" o "criterio de búsqueda", se descartan como clases).*
+2. **Filtro 2 — Complejidad Estructural:** ¿Posee más de un atributo relevante propio? *(Si es un valor atómico único, como `nombreModulo` o `puntajeFibonacci`, pasa a ser atributo o enumeración).*
 3. **Filtro 3 — Identidad Propia y Ciclo de Vida Independiente:** ¿Corresponde a Personas/Roles del dominio, Eventos transaccionales/operativos registrables, Elementos tangibles/artefactos trazables o Catálogos del negocio?
 4. **Filtro 4 — Participación en Escenarios:** ¿Participa activamente en al menos un Caso de Uso de la Vista +1 (`CU-01` a `CU-08`)? *(Prohibido mantener clases huérfanas o especulativas sin respaldo en requisitos).*
 
@@ -61,7 +61,7 @@ Antes de congelar el Diagrama de Clases definitivo:
   - Demasiadas clases colaboradoras ➔ señal de **Alto Acoplamiento** (revisar encapsulamiento o mediación).
 - **Matriz de Trazabilidad (Escenarios vs. Clases):** Cruza en filas los Casos de Uso (`CU-01` a `CU-08`) y en columnas todas las clases del dominio:
   - Ninguna fila ni columna puede quedar vacía.
-  - Los **Flujos Alternos** de las especificaciones de Semana 3 revelan las transiciones críticas que exigen modelar un **Diagrama de Estados UML** complementario para las clases con ciclo de vida complejo (por ejemplo, `AlertaOperativa`, `CicloSincronizacion` o `ItemTrabajo`).
+  - Los **Flujos Alternos** de las especificaciones de Semana 3 revelan las transiciones críticas que exigen modelar un **Diagrama de Estados UML** complementario para las clases con ciclo de vida complejo (por ejemplo, `AlertaOperativa`, `CicloSincronizacion` o `ActividadTrazable` en las 5 etapas oficiales).
 
 ### 1.6 Las 6 Relaciones Formales UML 2.5.1, Multiplicidades y Roles
 Todo enlace en el Diagrama de Clases debe usar la relación semánticamente correcta:
@@ -75,8 +75,8 @@ Todo enlace en el Diagrama de Clases debe usar la relación semánticamente corr
 
 **Reglas adicionales de modelado estructural:**
 - **Multiplicidades como escudo arquitectónico:** Son obligatorias en **ambos extremos** de toda asociación, agregación y composición (`1`, `0..1`, `*` o `0..*`, `1..*`, `n..m`).
-- **Descomposición de N:M con atributos propios:** Toda relación muchos a muchos (`*` a `*`) que tenga atributos, estado o marca temporal propios debe descomponerse en una **Entidad Intermedia / Clase Asociativa**.
-- **Patrón de Roles por Asociación vs. Herencia Rígida:** Si un sujeto o entidad del dominio puede cambiar de rol en el tiempo o acumular varios roles simultáneamente, está **prohibido** modelarlo con herencia rígida; debe usarse **Roles por Asociación** y justificarse como decisión arquitectónica en el DAS.
+- **Descomposición de N:M con atributos propios:** Toda relación muchos a muchos (`*` a `*`) que tenga atributos, estado o marca temporal propios debe descomponerse en una **Entidad Intermedia / Clase Asociativa** (por ejemplo, la asignación/participación de un desarrollador como asignado frente a revisor de QA cruzado).
+- **Patrón de Roles por Asociación vs. Herencia Rígida:** Si un sujeto o entidad del dominio puede cambiar de rol en el tiempo o acumular varios roles simultáneamente (por ejemplo, un mismo desarrollador actuando como responsable en Redmine, autor de commits o revisor de QA cruzado en GitLab), está **prohibido** modelarlo con herencia rígida; debe usarse **Roles por Asociación** y justificarse como decisión arquitectónica en el DAS.
 
 ### 1.7 Receta de Construcción en 5 Pasos y Diccionario de Clases Obligatorio
 
@@ -84,14 +84,14 @@ Todo enlace en el Diagrama de Clases debe usar la relación semánticamente corr
 1. Ubicar las clases núcleo más conectadas en el centro del lienzo.
 2. Declarar los atributos depurados con visibilidad privada (`-`) y tipo de dato abstracto (`Texto`, `Entero`, `Decimal`, `Booleano`, `FechaHora`, `Duracion`, etc.).
 3. Trazar las relaciones formales precisas (Asociación, Agregación, Composición, Generalización, Dependencia) con verbo de lectura y roles.
-4. Especificar multiplicidades exactas en ambos extremos y definir todas las enumeraciones (`«enumeration»`) con sus literales en mayúsculas o formato canónico.
+4. Especificar multiplicidades exactas en ambos extremos y definir todas las enumeraciones (`«enumeration»`) con sus valores canónicos (ej. las 5 etapas oficiales, los 6 módulos financieros, la complejidad Fibonacci `2/5/13` o el semáforo de ocupación).
 5. Incorporar las operaciones públicas (`+`) con firma completa derivadas de los verbos de los Casos de Uso y agrupar en paquetes lógicos si mejora la legibilidad.
 
 #### 5 Campos Obligatorios por Clase en el Diccionario de Clases
 1. **Nombre y Propósito:** Definición clara de su única responsabilidad en el dominio.
 2. **Atributos y Restricciones:** Visibilidad, tipo abstracto, obligatoriedad, valor por defecto, rangos válidos e indicación `/` si es derivado.
 3. **Operaciones (Entrada / Salida):** Firma completa `+ metodo(param : Tipo) : TipoRetorno` y descripción breve de su efecto. *(Estas firmas deben coincidir 1:1 con la Vista de Procesos).*
-4. **Invariantes / Reglas de Negocio:** Condiciones que la clase jamás puede violar y códigos `RF-xxx` respaldados (ej. fórmula de índice de carga, umbral `> 5` días hábiles, deduplicación `24 h`).
+4. **Invariantes / Reglas de Negocio:** Condiciones que la clase jamás puede violar y códigos `RF-xxx` / `RNF-xxx` respaldados (ej. conversión Fibonacci `Nivel 1 Baja = 2`, `Nivel 2 Media = 5`, `Nivel 3 Alta = 13` en `RF-001`; ocupación semanal base `40 h` en `RF-002`/`RF-003`; fórmula de eficiencia `70 %` avance + `30 %` calidad con `-10 pts` por retorno y `-5 pts` por hallazgo crítico en `RF-005`; supresión anti-spam `24 h` en `RF-023`; enmascaramiento 100 % PII LOPDP 2021 en `RNF-017`).
 5. **Casos de Uso Trazados:** Lista exacta de `CU-01` a `CU-08` donde interviene.
 
 ---
@@ -103,19 +103,19 @@ La Vista de Procesos describe el comportamiento **dinámico en tiempo de ejecuci
 
 - **Proceso (Unidad Táctica / Ejecutable):** Espacio de direcciones independiente con memoria, estado y ciclo de vida propios que agrupa una o más tareas y puede replicarse en múltiples instancias.
 - **Tarea (Hilo de Control Individual / Thread):** Secuencia de ejecución concurrente dentro de un proceso.
-- **Regla de Oro de Distribución:** Las tareas mayores nunca deben asumir que residen en el mismo proceso ni en el mismo nodo físico que sus interlocutoras; toda comunicación inter-proceso debe contemplar latencia, timeouts y fallos parciales.
+- **Regla de Oro de Distribución:** Las tareas mayores nunca deben asumir que residen en el mismo proceso ni en el mismo nodo físico que sus interlocutoras; toda comunicación inter-proceso debe contemplar latencia, timeouts (ej. `<= 10 s` en consultas externas bajo `RNF-008`) y fallos parciales.
 
 ### 2.2 Semántica de Comunicación en Diagramas de Secuencia UML 2.5.1
-- **Mensaje Síncrono (`->` en PlantUML, flecha continua punta rellena):** El emisor se bloquea esperando respuesta del receptor. Genera alto acoplamiento temporal y riesgos de latencia acumulada, agotamiento de hilos y fallos en cascada (exige `timeout` explícito, ej. `<= 5 s` en conectores externos).
-- **Mensaje Asíncrono (`->>` en PlantUML, flecha continua punta abierta):** El emisor dispara el evento/mensaje y continúa de inmediato sin bloquearse. Logra bajo acoplamiento temporal y resiliencia ante picos, pero exige controlar consistencia eventual, orden de eventos, deduplicación y colas de reintento.
+- **Mensaje Síncrono (`->` en PlantUML, flecha continua punta rellena):** El emisor se bloquea esperando respuesta del receptor. Genera alto acoplamiento temporal y riesgos de latencia acumulada, agotamiento de hilos y fallos en cascada (exige límites temporales explícitos, como `<= 10 s` en adaptadores externos bajo `RNF-008`, `<= 2 s` en consulta del tablero bajo `RNF-014` o `<= 400 ms` en filtrado multidimensional bajo `RNF-018`).
+- **Mensaje Asíncrono (`->>` en PlantUML, flecha continua punta abierta):** El emisor dispara el evento/mensaje y continúa de inmediato sin bloquearse. Logra bajo acoplamiento temporal y resiliencia (ej. despacho de alertas en `CU-02` sin bloquear el ciclo ETL principal de `CU-01` bajo `RNF-016`), exigiendo controlar consistencia eventual, orden de eventos y reintentos.
 - **Mensaje de Retorno (`-->`, línea punteada punta abierta):** Devuelve control o resultado de una invocación síncrona.
-- **Activación y Destrucción (`activate` / `deactivate` / `destroy`):** Muestran con precisión el foco de control de cada participante y los límites transaccionales.
+- **Activación y Destrucción (`activate` / `deactivate` / `destroy`):** Muestran con precisión el foco de control de cada participante, los límites transaccionales y la liberación de recursos (`< 200 ms` al cierre de sesión bajo `RNF-011`).
 
 ### 2.3 Patrón de Análisis de Robustez ECB y Procedimiento de 6 Pasos
 Todo Diagrama de Secuencia parte obligatoriamente de un **Análisis de Robustez ECB** (*Entity – Control – Boundary*):
 
-- **`«boundary»` (Frontera):** Interfaz con el mundo exterior. Existe un `«boundary»` para cada actor humano (interfaz/portal lógico de consulta o auditoría) y uno por cada sistema externo o disparador (`RedmineAdapter`, `GitLabAdapter`, `GLPIAdapter`, `SonarQubeAdapter`, `MensajeriaWebhookAdapter`, `SMTPAdapter`, `SchedulerETLBoundary`).
-- **`«control»` (Controlador de Caso de Uso):** Orquesta la secuencia de aplicación, coordinación temporal, reintentos y manejo de fallos del Caso de Uso.
+- **`«boundary»` (Frontera):** Interfaz con el mundo exterior. Existe un `«boundary»` específico para cada actor primario (`Tiempo (Temporizador CRON)` y vistas lógicas del `Jefe de Desarrollo / PMO`) y un adaptador agnóstico por cada actor secundario externo (`AdaptadorRedmine`, `AdaptadorGLPI`, `AdaptadorGitLab`, `AdaptadorSonarQube`, `AdaptadorCanalMensajeriaCorporativo`, `AdaptadorServicioCorreoCorporativo`), cumpliendo desacoplamiento por adaptadores (`RNF-016`).
+- **`«control»` (Controlador de Caso de Uso):** Orquesta la secuencia de aplicación, coordinación temporal, compuertas (como la depuración LOPDP 2021), reintentos y manejo de fallos del Caso de Uso.
   - **Diferencia clave vs. MVC y prevención de *Control Clase Dios*:** A diferencia de un *Controller* HTTP delgado en MVC, un `«control»` en ECB sí dirige el flujo completo del caso de uso, pero **no** absorbe las reglas intrínsecas de cálculo ni las invariantes de negocio propias de los datos; esas responsabilidades permanecen encapsuladas en las clases `«entity»`.
 - **`«entity»` (Entidad del Dominio):** Objeto conceptual persistente cuyo nombre proviene **exactamente** del Diagrama de Clases de la Semana 4.
 
@@ -145,12 +145,12 @@ Todo Diagrama de Secuencia parte obligatoriamente de un **Análisis de Robustez 
 ### 2.5 Fragmentos Combinados Obligatorios en Secuencias UML 2.5.1
 No utilizar diagramas lineales planos cuando la especificación de Semana 3 describe condiciones, bucles, paralelismo o exclusión mutua. Deben emplearse explícitamente los operadores estándar UML 2.5.1:
 
-- **`alt` / `else` (Alternativas excluyentes):** Ramas condicionales `if / else` (ej. extracción completa vs. preservación de último snapshot válido en sincronización parcial; hit en caché vs. recálculo; webhook Discord/Slack exitoso vs. fallback a Servidor SMTP).
-- **`opt` (Opcional):** Ejecución condicionada sin rama alternativa (ej. disparo del punto de extensión `CU-02` únicamente cuando un indicador cruza umbral o existe inconsistencia nueva).
-- **`loop` (Iteración):** Repetición con guarda explícita (ej. hasta 3 reintentos con *backoff exponencial*; iteración sobre fuentes externas o ítems/desarrolladores).
-- **`break` (Interrupción de excepción crítica):** Aborta inmediatamente el fragmento contenedor ante error terminal (ej. error de autenticación `401/403`, payload corrupto o rango de fechas inválido).
-- **`par` (Ejecución paralela/concurrente):** Hilos o tareas simultáneas independientes (ej. consulta concurrente a Redmine, GLPI, GitLab y SonarQube dentro del presupuesto de `<= 5 s` por fuente).
-- **`critical` (Región crítica atómica):** Exclusión mutua para prevenir condiciones de carrera (ej. publicación/intercambio atómico del snapshot consolidado o verificación + registro atómico de la ventana de deduplicación de 24 horas en alertas).
+- **`alt` / `else` (Alternativas excluyentes):** Ramas condicionales `if / else` (ej. extracción completa vs. preservación del último snapshot válido ante caída parcial en `CU-01` `2a`; entrega por `Canal de Mensajería Corporativo` vs. conmutación automática a `Servicio de Correo Corporativo` en `CU-02` `4a`; combinación de filtros con resultados vs. aviso de cero coincidencias en `CU-05` `4a`).
+- **`opt` (Opcional):** Ejecución condicionada sin rama alternativa (ej. disparo de la extensión `CU-02` únicamente cuando se supera un umbral crítico en `CU-01`; despacho adicional por `Servicio de Correo Corporativo` en `CU-02` paso 5).
+- **`loop` (Iteración):** Repetición con guarda explícita (ej. hasta `3 reintentos automáticos` ante espera `> 10 s` o indisponibilidad temporal en `CU-01`; refresco incremental periódico cada 5 minutos en `CU-04` y `CU-05`).
+- **`break` (Interrupción de excepción crítica):** Aborta inmediatamente el fragmento contenedor ante error terminal (ej. indisponibilidad total o credenciales inválidas `2b`, fallo en compuerta de enmascaramiento LOPDP 2021 `3a`, o conflicto irrecuperable al consolidar `8a` en `CU-01`; fallo del motor de evaluación `< 200 ms` `1a` en `CU-02`; criterio de fechas inválido `3a` en `CU-05`; expediente depurado `> 24 meses` `2b` o fallo del rastro inmutable `4a` en `CU-06`).
+- **`par` (Ejecución paralela/concurrente):** Hilos o tareas simultáneas independientes (ej. consulta concurrente en solo lectura a `Redmine`, `GLPI`, `GitLab` y `SonarQube` dentro del límite de `10 segundos` por fuente bajo `RNF-008`).
+- **`critical` (Región crítica atómica):** Exclusión mutua para prevenir condiciones de carrera (ej. consolidación atómica e idempotente con llaves naturales compuestas en `CU-01` bajo `RNF-009`, o verificación y registro atómico de supresión anti-spam de 24 horas en `CU-02` bajo `RF-023` y `RNF-004`).
 
 ### 2.6 Regla Inexcusable de Trazabilidad 1:1 (Semana 4 ↔ Semana 5)
 > **REGLA BLOQUEANTE DE CIERRE:** Todo participante `«entity»` en un Diagrama de Secuencia **debe existir** con nombre idéntico en el Diagrama de Clases (`docs/uml/diagrama-clases.puml`), y todo mensaje dirigido a esa `«entity»` **debe coincidir exactamente** (nombre, parámetros y retorno) con una operación pública declarada en la clase correspondiente y documentada en su Diccionario de Clases (`docs/vista-logica-clases.md`). Si al modelar la Vista de Procesos aparece una operación nueva o se ajusta una firma, es obligatorio actualizar primero la Vista Lógica antes de cerrar la entrega.
@@ -164,8 +164,8 @@ El **Documento de Arquitectura de Software (DAS v3.0)** del curso se organiza en
 | Sección DAS v3.0 | Contenido normativo | Estado en el repositorio |
 |---|---|---|
 | **1. Introducción, TDR y Alcance (Sem. 1–2)** | Propósito del sistema, alcance, glosario, restricciones tecnológicas/organizacionales y Cadena de Valor TOGAF ADM | Cubierto en matrices Excel + `docs/uml/cadena-de-valor-togaf-adm.puml` |
-| **2. Interesados y Calidad (Sem. 2)** | Actores/interesados, `40 RF`, `40 HU` (`225 pts`) y `18 RNF` bajo ISO/IEC 25010:2023 + Escenarios de Calidad de 6 partes | **Cerrado** (`docs/Requisitos-padre-julian-lorente.xlsx`, `docs/historias-usuario-padre-julian-lorente.xlsx`) |
-| **3. Vista de Escenarios +1 (Sem. 3)** | Modelo consolidado de Casos de Uso (`CU-01`..`CU-08`) y Especificaciones Cockburn de 8 secciones | **Cerrado** (`docs/uml/casos-de-uso.puml`, `docs/especificaciones-casos-de-uso.md`) |
+| **2. Interesados y Calidad (Sem. 2)** | Actores/interesados, `40 RF`, `40 HU` (`225 pts` Fibonacci) y `18 RNF` bajo ISO/IEC 25010:2023 + Escenarios de Calidad de 6 partes | **Cerrado** (`docs/Requisitos-padre-julian-lorente.xlsx`, `docs/historias-usuario-padre-julian-lorente.xlsx`) |
+| **3. Vista de Escenarios +1 (Sem. 3)** | Modelo consolidado de Casos de Uso (`CU-01`..`CU-08`), Especificaciones Cockburn de 8 secciones (Sección 3) y Fichas Complementarias (Sección 4.1) | **Cerrado** (`docs/uml/casos-de-uso.puml`, `docs/especificaciones-casos-de-uso.md`) |
 | **4. Vista Lógica (Sem. 4)** | Extracción gramatical y 4 filtros, Tarjetas CRC, Diagrama de Clases UML 2.5.1 (Nivel Especificación), Diccionario de Clases (5 campos), Matriz Escenarios vs. Clases y Diagrama de Estados | **Pendiente — Siguiente paso obligatorio** (`docs/handoff/prompt-vista-logica.md`) |
 | **5. Vista de Procesos (Sem. 5)** | Procesos/tareas concurrentes, Tablas ECB auditadas, Diagramas de Secuencia UML 2.5.1 con fragmentos combinados y Matriz 1:1 con Semana 4 | **Pendiente — Ejecutar tras cerrar Vista Lógica** (`docs/handoff/prompt-vista-procesos.md`) |
 | **6. Vista de Desarrollo (Sem. 6)** | Estructura de módulos/componentes implementables, decisiones de stack e infraestructura | **Posterior** (`docs/handoff/skills-fase-codigo.md`) |
