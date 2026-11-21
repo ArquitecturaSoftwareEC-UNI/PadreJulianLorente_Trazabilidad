@@ -1,0 +1,199 @@
+<mxfile host="Electron" version="24.7.17">
+  <diagram id="vista-logica-4paquetes" name="Vista Lógica UML 2.5.1 (4 Paquetes)">
+    <mxGraphModel dx="2200" dy="1420" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="2200" pageHeight="1420" background="#FFFFFF" math="0" shadow="0">
+      <root>
+        <mxCell id="0"/>
+        <mxCell id="1" parent="0"/>
+
+        <mxCell id="title_banner" value="Vista Lógica (Semana 4) — Diagrama de Clases del Dominio UML 2.5.1 (Modelo 4+1 de Kruchten)&#xa;Sistema de Trazabilidad TI — COAC Padre Julián Lorente (4 Paquetes Lógicos · 16 Clases · CU-01 a CU-08 · 40 RF · 18 RNF)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#F8FAFC;strokeColor=#1F4E78;strokeWidth=2;fontColor=#1F4E78;fontStyle=1;fontSize=16;align=center;verticalAlign=middle;" vertex="1" parent="1">
+          <mxGeometry x="40" y="20" width="2120" height="55" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="pkg1" value="PAQUETE 1 — Planificación y Jerarquía (POA / PETI · Redmine · RF-012, RF-018, RF-033)" style="swimlane;whiteSpace=wrap;html=1;startSize=36;fillColor=#F0F7FF;strokeColor=#1F4E78;strokeWidth=2;fontColor=#1F4E78;fontStyle=1;fontSize=13;rounded=1;arcSize=4;swimlaneFillColor=#F8FBFF;" vertex="1" parent="1">
+          <mxGeometry x="40" y="95" width="990" height="530" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="c_modulo" value="&lt;b style=&quot;font-size:13px;&quot;&gt;«entity» ModuloFinanciero&lt;/b&gt;&lt;hr size=&quot;1&quot;/&gt;&lt;div style=&quot;text-align:left;padding:4px 8px;font-size:12px;&quot;&gt;- codigoModulo : Texto&lt;br/&gt;- nombreCore : ModuloCoreFinanciero [1..6]&lt;br/&gt;- /totalTareasActivas : Entero&lt;br/&gt;- /tieneCuelloBotella : Booleano&lt;/div&gt;&lt;hr size=&quot;1&quot;/&gt;&lt;div style=&quot;text-align:left;padding:4px 8px;font-size:12px;&quot;&gt;+ consolidarPorModulo() : ExpedienteTrazabilidad&lt;br/&gt;+ evaluarCuelloBotellaEmbudo() : Booleano&lt;/div&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#DAE8FC;strokeColor=#1F4E78;strokeWidth=1.8;fontColor=#0F172A;verticalAlign=top;align=center;overflow=fill;" vertex="1" parent="pkg1">
+          <mxGeometry x="25" y="55" width="370" height="190" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="c_poa" value="&lt;b style=&quot;font-size:13px;&quot;&gt;«entity» ProyectoPOA (Épica Nivel 1)&lt;/b&gt;&lt;hr size=&quot;1&quot;/&gt;&lt;div style=&quot;text-align:left;padding:4px 8px;font-size:12px;&quot;&gt;- codigoPOA : Texto&lt;br/&gt;- nombreProyecto : Texto&lt;br/&gt;- prioridadEstrategica : Entero&lt;br/&gt;- /avancePlanificadoVsReal : Decimal&lt;/div&gt;&lt;hr size=&quot;1&quot;/&gt;&lt;div style=&quot;text-align:left;padding:4px 8px;font-size:12px;&quot;&gt;+ calcularDesviacionAvance() : Decimal&lt;br/&gt;+ registrarCambioPrioridad(nueva : Entero) : Booleano&lt;/div&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#DAE8FC;strokeColor=#1F4E78;strokeWidth=1.8;fontColor=#0F172A;verticalAlign=top;align=center;overflow=fill;" vertex="1" parent="pkg1">
+          <mxGeometry x="595" y="55" width="370" height="190" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="c_tarea" value="&lt;b style=&quot;font-size:13px;&quot;&gt;«entity» TareaIssue (#ID Nivel 3)&lt;/b&gt;&lt;hr size=&quot;1&quot;/&gt;&lt;div style=&quot;text-align:left;padding:4px 8px;font-size:12px;&quot;&gt;- codigoIssue : Texto&lt;br/&gt;- complejidad : NivelComplejidad [2, 5 o 13 pts]&lt;br/&gt;- etapaActual : EtapaOficial [1..5]&lt;br/&gt;- porcentajeReportado : Decimal&lt;br/&gt;- /avanceRealVerificado : Decimal&lt;/div&gt;&lt;hr size=&quot;1&quot;/&gt;&lt;div style=&quot;text-align:left;padding:4px 8px;font-size:12px;&quot;&gt;+ validarRespaldoEnCodigo() : Decimal&lt;br/&gt;+ cambiarEtapaOficial() : EtapaOficial&lt;br/&gt;+ enlazarIncidenteGLPI() : Booleano&lt;/div&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#BAE6FD;strokeColor=#0284C7;strokeWidth=2.2;fontColor=#0F172A;verticalAlign=top;align=center;overflow=fill;" vertex="1" parent="pkg1">
+          <mxGeometry x="25" y="310" width="370" height="200" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="c_historia" value="&lt;b style=&quot;font-size:13px;&quot;&gt;«entity» HistoriaSpec (REQ / INI.TI Nivel 2)&lt;/b&gt;&lt;hr size=&quot;1&quot;/&gt;&lt;div style=&quot;text-align:left;padding:4px 8px;font-size:12px;&quot;&gt;- codigoSpec : Texto&lt;br/&gt;- tipoRequerimiento : TipoEspecificacion&lt;br/&gt;- horasEstimadasBase : Decimal&lt;br/&gt;- fechaCompromiso : FechaHora&lt;br/&gt;- /porcentajeCumplimiento : Decimal&lt;/div&gt;&lt;hr size=&quot;1&quot;/&gt;&lt;div style=&quot;text-align:left;padding:4px 8px;font-size:12px;&quot;&gt;+ desglosarTareasPlanificadas() : Lista&lt;br/&gt;+ calcularAvancePonderado() : Decimal&lt;/div&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#DAE8FC;strokeColor=#1F4E78;strokeWidth=1.8;fontColor=#0F172A;verticalAlign=top;align=center;overflow=fill;" vertex="1" parent="pkg1">
+          <mxGeometry x="595" y="310" width="370" height="200" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="e_mod_poa" value="1     agrupa &gt;     0..*" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;startArrow=diamondThin;startFill=0;startSize=12;endArrow=open;endSize=10;strokeColor=#1F4E78;strokeWidth=1.8;fontSize=11;fontStyle=1;fontColor=#1F4E78;labelBackgroundColor=#F8FBFF;" edge="1" parent="pkg1" source="c_modulo" target="c_poa">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="e_poa_hist" value="1   compone N2 v   1..*" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;startArrow=diamondThin;startFill=1;startSize=12;endArrow=open;endSize=10;strokeColor=#1F4E78;strokeWidth=1.8;fontSize=11;fontStyle=1;fontColor=#1F4E78;labelBackgroundColor=#F8FBFF;" edge="1" parent="pkg1" source="c_poa" target="c_historia">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="e_hist_tarea" value="0..*    &lt; desglosa N3    0..1" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;startArrow=diamondThin;startFill=0;startSize=12;endArrow=open;endSize=10;strokeColor=#1F4E78;strokeWidth=1.8;fontSize=11;fontStyle=1;fontColor=#1F4E78;labelBackgroundColor=#F8FBFF;" edge="1" parent="pkg1" source="c_historia" target="c_tarea">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="pkg2" value="PAQUETE 2 — Ejecución Técnica y Calidad (GitLab · GLPI · SonarQube · Carga 40h · RF-001..RF-003, RF-013..RF-022, RF-038)" style="swimlane;whiteSpace=wrap;html=1;startSize=36;fillColor=#F2FBF4;strokeColor=#2D7636;strokeWidth=2;fontColor=#1B4D20;fontStyle=1;fontSize=13;rounded=1;arcSize=4;swimlaneFillColor=#F7FDF9;" vertex="1" parent="1">
+          <mxGeometry x="1170" y="95" width="990" height="530" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="c_incidente" value="&lt;b style=&quot;font-size:13px;&quot;&gt;«entity» IncidenteSoporte (GLPI #ID)&lt;/b&gt;&lt;hr size=&quot;1&quot;/&gt;&lt;div style=&quot;text-align:left;padding:4px 8px;font-size:12px;&quot;&gt;- codigoGLPI : Texto&lt;br/&gt;- esCriticoCoreFinanciero : Booleano&lt;br/&gt;- /horasCargaEstandar : Decimal [4h o 8h]&lt;br/&gt;- /puntosFibonacci : Entero [3 o 5 pts]&lt;br/&gt;- /tieneTareaEspejoRedmine : Booleano&lt;/div&gt;&lt;hr size=&quot;1&quot;/&gt;&lt;div style=&quot;text-align:left;padding:4px 8px;font-size:12px;&quot;&gt;+ normalizarReferenciaGLPI() : Texto&lt;br/&gt;+ asignarEsfuerzoAutomatico() : Decimal&lt;br/&gt;+ clasificarSoporteSinTrazabilidad() : Booleano&lt;/div&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#D5E8D4;strokeColor=#2D7636;strokeWidth=1.8;fontColor=#0F172A;verticalAlign=top;align=center;overflow=fill;" vertex="1" parent="pkg2">
+          <mxGeometry x="25" y="55" width="370" height="190" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="c_dev" value="&lt;b style=&quot;font-size:13px;&quot;&gt;«entity» Desarrollador (Roles por Asociación)&lt;/b&gt;&lt;hr size=&quot;1&quot;/&gt;&lt;div style=&quot;text-align:left;padding:4px 8px;font-size:12px;&quot;&gt;- codigoDesarrollador : Texto&lt;br/&gt;- nombreCompleto : Texto&lt;br/&gt;- capacidadBaseSemanal : Decimal = 40.0 h&lt;br/&gt;- /horasEfectivasSemana : Decimal&lt;br/&gt;- /semaforo : NivelSemaforo [Verde|Amarillo|Rojo]&lt;/div&gt;&lt;hr size=&quot;1&quot;/&gt;&lt;div style=&quot;text-align:left;padding:4px 8px;font-size:12px;&quot;&gt;+ calcularCargaLaboral40h() : Decimal&lt;br/&gt;+ determinarSemaforoCapacidad() : NivelSemaforo&lt;br/&gt;+ auditarDivergenciaAutoria() : Booleano&lt;/div&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#D5E8D4;strokeColor=#2D7636;strokeWidth=1.8;fontColor=#0F172A;verticalAlign=top;align=center;overflow=fill;" vertex="1" parent="pkg2">
+          <mxGeometry x="595" y="55" width="370" height="190" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="c_codigo" value="&lt;b style=&quot;font-size:13px;&quot;&gt;«entity» ActividadCodigo (Nivel 4 · GitLab)&lt;/b&gt;&lt;hr size=&quot;1&quot;/&gt;&lt;div style=&quot;text-align:left;padding:4px 8px;font-size:12px;&quot;&gt;- ramaActiva : Texto&lt;br/&gt;- codigoMergeRequest : Texto&lt;br/&gt;- tipoCommit : TipoCommit [feat|fix|test|refactor]&lt;br/&gt;- mrAprobado : Booleano&lt;br/&gt;- pipelineCICDExitoso : Booleano&lt;/div&gt;&lt;hr size=&quot;1&quot;/&gt;&lt;div style=&quot;text-align:left;padding:4px 8px;font-size:12px;&quot;&gt;+ verificarCommitsTipados25PorCiento() : Booleano&lt;br/&gt;+ validarCierreCienPorCiento() : Booleano&lt;br/&gt;+ clasificarCodigoSinTrazabilidad() : Booleano&lt;/div&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#D5E8D4;strokeColor=#2D7636;strokeWidth=1.8;fontColor=#0F172A;verticalAlign=top;align=center;overflow=fill;" vertex="1" parent="pkg2">
+          <mxGeometry x="25" y="310" width="370" height="200" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="c_sonar" value="&lt;b style=&quot;font-size:13px;&quot;&gt;«entity» ReporteCalidad (SonarQube)&lt;/b&gt;&lt;hr size=&quot;1&quot;/&gt;&lt;div style=&quot;text-align:left;padding:4px 8px;font-size:12px;&quot;&gt;- codigoAnalisis : Texto&lt;br/&gt;- bugsCriticosAbiertos : Entero&lt;br/&gt;- vulnerabilidadesAbiertas : Entero&lt;br/&gt;- fechaInspeccion : FechaHora&lt;br/&gt;- /puntosPenalizacion : Decimal [-5 pts c/u]&lt;/div&gt;&lt;hr size=&quot;1&quot;/&gt;&lt;div style=&quot;text-align:left;padding:4px 8px;font-size:12px;&quot;&gt;+ calcularPenalizacionCalidad() : Decimal&lt;br/&gt;+ verificarCompuertaCalidad() : Booleano&lt;/div&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#D5E8D4;strokeColor=#2D7636;strokeWidth=1.8;fontColor=#0F172A;verticalAlign=top;align=center;overflow=fill;" vertex="1" parent="pkg2">
+          <mxGeometry x="595" y="310" width="370" height="200" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="e_dev_inc" value="0..*   &lt; rol: soporte GLPI   1" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;endArrow=open;endSize=10;strokeColor=#2D7636;strokeWidth=1.8;fontSize=11;fontStyle=1;fontColor=#1B4D20;labelBackgroundColor=#F7FDF9;" edge="1" parent="pkg2" source="c_dev" target="c_incidente">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="e_dev_cod" value="1..*   rol: autor / revisor QA (+2h) &gt;   0..*" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.25;exitY=1;entryX=0.75;entryY=0;endArrow=open;endSize=10;strokeColor=#2D7636;strokeWidth=1.8;fontSize=11;fontStyle=1;fontColor=#1B4D20;labelBackgroundColor=#F7FDF9;" edge="1" parent="pkg2" source="c_dev" target="c_codigo">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="e_cod_sonar" value="1    evalúa calidad &gt;    0..*" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;startArrow=diamondThin;startFill=1;startSize=12;endArrow=open;endSize=10;strokeColor=#2D7636;strokeWidth=1.8;fontSize=11;fontStyle=1;fontColor=#1B4D20;labelBackgroundColor=#F7FDF9;" edge="1" parent="pkg2" source="c_codigo" target="c_sonar">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="pkg3" value="PAQUETE 3 — Trazabilidad, 5 Etapas y Métricas (Correlación CU-01 · Causa Raíz CU-06 · Rastro Inmutable RNF-001 · LOPDP RNF-017)" style="swimlane;whiteSpace=wrap;html=1;startSize=36;fillColor=#FFF8EE;strokeColor=#B45F06;strokeWidth=2;fontColor=#783F04;fontStyle=1;fontSize=13;rounded=1;arcSize=4;swimlaneFillColor=#FFFDF9;" vertex="1" parent="1">
+          <mxGeometry x="40" y="680" width="990" height="530" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="c_expediente" value="&lt;b style=&quot;font-size:13px;&quot;&gt;«entity» ExpedienteTrazabilidad (Núcleo CU-01/06)&lt;/b&gt;&lt;hr size=&quot;1&quot;/&gt;&lt;div style=&quot;text-align:left;padding:4px 8px;font-size:12px;&quot;&gt;- codigoExpediente : Texto&lt;br/&gt;- llaveNaturalCompuesta : Texto [0% duplicados]&lt;br/&gt;- estadoSincronizacion : EstadoSincronizacion&lt;br/&gt;- anonimizadoLOPDP : Booleano = verdadero [100%]&lt;br/&gt;- /tieneBrechaEvidencia : Booleano&lt;/div&gt;&lt;hr size=&quot;1&quot;/&gt;&lt;div style=&quot;text-align:left;padding:4px 8px;font-size:12px;&quot;&gt;+ unificarHistorial4Niveles() : ExpedienteTrazabilidad&lt;br/&gt;+ verificarCompuertaLOPDP() : Booleano&lt;br/&gt;+ reconstruirCausaRaiz() : ExpedienteTrazabilidad&lt;/div&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFE6CC;strokeColor=#B45F06;strokeWidth=2.2;fontColor=#0F172A;verticalAlign=top;align=center;overflow=fill;" vertex="1" parent="pkg3">
+          <mxGeometry x="25" y="55" width="370" height="195" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="c_hito" value="&lt;b style=&quot;font-size:13px;&quot;&gt;«entity» HitoEtapa (Embudo de 5 Etapas)&lt;/b&gt;&lt;hr size=&quot;1&quot;/&gt;&lt;div style=&quot;text-align:left;padding:4px 8px;font-size:12px;&quot;&gt;- etapaOficial : EtapaOficial [1..5]&lt;br/&gt;- fechaHoraIngreso : FechaHora&lt;br/&gt;- fechaHoraSalida : FechaHora [0..1]&lt;br/&gt;- /diasHabilesPermanencia : Decimal&lt;br/&gt;- /esCuelloDeBotella : Booleano [&gt;5d Cert | &gt;2d Desp]&lt;/div&gt;&lt;hr size=&quot;1&quot;/&gt;&lt;div style=&quot;text-align:left;padding:4px 8px;font-size:12px;&quot;&gt;+ calcularDiasHabiles() : Decimal&lt;br/&gt;+ detectarAtrasoCertificacion() : Booleano&lt;/div&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFE6CC;strokeColor=#B45F06;strokeWidth=1.8;fontColor=#0F172A;verticalAlign=top;align=center;overflow=fill;" vertex="1" parent="pkg3">
+          <mxGeometry x="595" y="55" width="370" height="195" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="c_indicador" value="&lt;b style=&quot;font-size:13px;&quot;&gt;«entity» IndicadorDesempeno (Rastro RNF-001)&lt;/b&gt;&lt;hr size=&quot;1&quot;/&gt;&lt;div style=&quot;text-align:left;padding:4px 8px;font-size:12px;&quot;&gt;- codigoIndicador : Texto&lt;br/&gt;- pesoAvanceReal : Decimal = 70%&lt;br/&gt;- pesoCalidadTecnica : Decimal = 30%&lt;br/&gt;- /puntajeEficiencia : Decimal [0..100%]&lt;br/&gt;- huellaInmutable12Meses : Texto&lt;/div&gt;&lt;hr size=&quot;1&quot;/&gt;&lt;div style=&quot;text-align:left;padding:4px 8px;font-size:12px;&quot;&gt;+ calcularEficiencia7030() : Decimal&lt;br/&gt;+ sellarRastroInmutable() : Booleano&lt;/div&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFE6CC;strokeColor=#B45F06;strokeWidth=1.8;fontColor=#0F172A;verticalAlign=top;align=center;overflow=fill;" vertex="1" parent="pkg3">
+          <mxGeometry x="25" y="315" width="370" height="195" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="c_retorno" value="&lt;b style=&quot;font-size:13px;&quot;&gt;«entity» RetornoFallo (Retroceso QA/Cert · RF-015)&lt;/b&gt;&lt;hr size=&quot;1&quot;/&gt;&lt;div style=&quot;text-align:left;padding:4px 8px;font-size:12px;&quot;&gt;- codigoRetorno : Texto&lt;br/&gt;- etapaOrigenRechazo : EtapaOficial&lt;br/&gt;- motivoRechazo : Texto&lt;br/&gt;- fechaHoraRetorno : FechaHora&lt;br/&gt;- penalizacionCalidad : Decimal = -10.0 pts&lt;/div&gt;&lt;hr size=&quot;1&quot;/&gt;&lt;div style=&quot;text-align:left;padding:4px 8px;font-size:12px;&quot;&gt;+ registrarRetornoADesarrollo() : Entero&lt;br/&gt;+ aplicarDescuentoDiezPuntos() : Decimal&lt;/div&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FFE6CC;strokeColor=#B45F06;strokeWidth=1.8;fontColor=#0F172A;verticalAlign=top;align=center;overflow=fill;" vertex="1" parent="pkg3">
+          <mxGeometry x="595" y="315" width="370" height="195" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="e_exp_hito" value="1   compone 5 etapas &gt;   1..5" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;startArrow=diamondThin;startFill=1;startSize=12;endArrow=open;endSize=10;strokeColor=#B45F06;strokeWidth=1.8;fontSize=11;fontStyle=1;fontColor=#783F04;labelBackgroundColor=#FFFDF9;" edge="1" parent="pkg3" source="c_expediente" target="c_hito">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="e_hito_ret" value="1   registra retroceso v   0..*" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;endArrow=open;endSize=10;strokeColor=#B45F06;strokeWidth=1.8;fontSize=11;fontStyle=1;fontColor=#783F04;labelBackgroundColor=#FFFDF9;" edge="1" parent="pkg3" source="c_hito" target="c_retorno">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="e_exp_ind" value="1   sella cálculo 70/30 v   1..*" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;startArrow=diamondThin;startFill=1;startSize=12;endArrow=open;endSize=10;strokeColor=#B45F06;strokeWidth=1.8;fontSize=11;fontStyle=1;fontColor=#783F04;labelBackgroundColor=#FFFDF9;" edge="1" parent="pkg3" source="c_expediente" target="c_indicador">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="e_ret_ind" value="1   &lt; descuenta -10 pts   0..*" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;endArrow=open;endSize=10;strokeColor=#B45F06;strokeWidth=1.8;fontSize=11;fontStyle=1;fontColor=#783F04;labelBackgroundColor=#FFFDF9;" edge="1" parent="pkg3" source="c_retorno" target="c_indicador">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="pkg4" value="PAQUETE 4 — Alertas, Gestión y Auditoría PMO (Alertas Anti-Spam 24h CU-02 · Tablero y Filtros CU-03..07 · Reporte CU-08)" style="swimlane;whiteSpace=wrap;html=1;startSize=36;fillColor=#F6F2FA;strokeColor=#56517E;strokeWidth=2;fontColor=#3B365E;fontStyle=1;fontSize=13;rounded=1;arcSize=4;swimlaneFillColor=#FCF9FF;" vertex="1" parent="1">
+          <mxGeometry x="1170" y="680" width="990" height="530" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="c_alerta" value="&lt;b style=&quot;font-size:13px;&quot;&gt;«entity» AlertaOperativa (CU-02 / CU-07)&lt;/b&gt;&lt;hr size=&quot;1&quot;/&gt;&lt;div style=&quot;text-align:left;padding:4px 8px;font-size:12px;&quot;&gt;- codigoAlerta : Texto&lt;br/&gt;- motivo : MotivoAlerta [&gt;40h | &gt;5d | Retorno | P1]&lt;br/&gt;- mensajeEjecutivoClaro : Texto [sin códigos crudos]&lt;br/&gt;- estado : EstadoAlerta [Emitida|EnSeguimiento|Atendida]&lt;br/&gt;- /suprimidaAntiSpam24h : Booleano&lt;/div&gt;&lt;hr size=&quot;1&quot;/&gt;&lt;div style=&quot;text-align:left;padding:4px 8px;font-size:12px;&quot;&gt;+ evaluarUmbralEn200ms() : Booleano&lt;br/&gt;+ verificarSupresion24Horas() : Booleano&lt;br/&gt;+ marcarEstadoGestion() : EstadoAlerta&lt;/div&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#E1D5E7;strokeColor=#56517E;strokeWidth=1.8;fontColor=#0F172A;verticalAlign=top;align=center;overflow=fill;" vertex="1" parent="pkg4">
+          <mxGeometry x="25" y="55" width="370" height="195" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="c_despacho" value="&lt;b style=&quot;font-size:13px;&quot;&gt;«entity» DespachoNotificacion (Multicanal TLS)&lt;/b&gt;&lt;hr size=&quot;1&quot;/&gt;&lt;div style=&quot;text-align:left;padding:4px 8px;font-size:12px;&quot;&gt;- codigoDespacho : Texto&lt;br/&gt;- canal : CanalNotificacion [Mensajería | Correo]&lt;br/&gt;- destinatarioInstitucional : Texto&lt;br/&gt;- cifradoTLSMinimo12 : Booleano = verdadero&lt;br/&gt;- resultadoEntrega : Texto&lt;/div&gt;&lt;hr size=&quot;1&quot;/&gt;&lt;div style=&quot;text-align:left;padding:4px 8px;font-size:12px;&quot;&gt;+ despacharCanalMensajeria() : Booleano&lt;br/&gt;+ escalarACorreoPorFallo() : Booleano&lt;br/&gt;+ registrarBitacora100PorCiento() : Vacio&lt;/div&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#E1D5E7;strokeColor=#56517E;strokeWidth=1.8;fontColor=#0F172A;verticalAlign=top;align=center;overflow=fill;" vertex="1" parent="pkg4">
+          <mxGeometry x="595" y="55" width="370" height="195" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="c_usuario" value="&lt;b style=&quot;font-size:13px;&quot;&gt;«entity» UsuarioGestion (Jefe Desarrollo / PMO)&lt;/b&gt;&lt;hr size=&quot;1&quot;/&gt;&lt;div style=&quot;text-align:left;padding:4px 8px;font-size:12px;&quot;&gt;- usuarioInstitucional : Texto&lt;br/&gt;- rolAutorizado : Texto [Jefe Desarrollo | PMO]&lt;br/&gt;- vistaUnicaSoloLectura : Booleano = verdadero&lt;br/&gt;- filtrosCombinadosActivos : Texto&lt;br/&gt;- cierreSesionMenos200ms : Booleano = verdadero&lt;/div&gt;&lt;hr size=&quot;1&quot;/&gt;&lt;div style=&quot;text-align:left;padding:4px 8px;font-size:12px;&quot;&gt;+ autenticarSesionTLS13() : Booleano&lt;br/&gt;+ consultarYFiltrarTablero() : Lista&lt;br/&gt;+ gestionarAlertaOperativa() : Booleano&lt;/div&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#E1D5E7;strokeColor=#56517E;strokeWidth=1.8;fontColor=#0F172A;verticalAlign=top;align=center;overflow=fill;" vertex="1" parent="pkg4">
+          <mxGeometry x="25" y="315" width="370" height="195" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="c_reporte" value="&lt;b style=&quot;font-size:13px;&quot;&gt;«entity» ReporteTrimestral (Ejecutivo · CU-08)&lt;/b&gt;&lt;hr size=&quot;1&quot;/&gt;&lt;div style=&quot;text-align:left;padding:4px 8px;font-size:12px;&quot;&gt;- codigoInforme : Texto&lt;br/&gt;- periodoTrimestre : Texto&lt;br/&gt;- totalProyectosPOA_REQ_INITI : Entero&lt;br/&gt;- totalIncidentesGLPI : Entero&lt;br/&gt;- /certificacionesATiempoVsAtrasadas : Texto&lt;/div&gt;&lt;hr size=&quot;1&quot;/&gt;&lt;div style=&quot;text-align:left;padding:4px 8px;font-size:12px;&quot;&gt;+ consolidarMetricasTrimestre() : ReporteTrimestral&lt;br/&gt;+ exportarInformeEjecutivo() : Archivo&lt;/div&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#E1D5E7;strokeColor=#56517E;strokeWidth=1.8;fontColor=#0F172A;verticalAlign=top;align=center;overflow=fill;" vertex="1" parent="pkg4">
+          <mxGeometry x="595" y="315" width="370" height="195" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="e_alerta_desp" value="1    audita envío &gt;    1..*" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;startArrow=diamondThin;startFill=1;startSize=12;endArrow=open;endSize=10;strokeColor=#56517E;strokeWidth=1.8;fontSize=11;fontStyle=1;fontColor=#3B365E;labelBackgroundColor=#FCF9FF;" edge="1" parent="pkg4" source="c_alerta" target="c_despacho">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="e_usr_alerta" value="0..1   atiende / seguimiento (CU-07) ^   0..*" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;endArrow=open;endSize=10;strokeColor=#56517E;strokeWidth=1.8;fontSize=11;fontStyle=1;fontColor=#3B365E;labelBackgroundColor=#FCF9FF;" edge="1" parent="pkg4" source="c_usuario" target="c_alerta">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="e_usr_rep" value="1    exporta (CU-08) &gt;    0..*" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;endArrow=open;endSize=10;strokeColor=#56517E;strokeWidth=1.8;fontSize=11;fontStyle=1;fontColor=#3B365E;labelBackgroundColor=#FCF9FF;" edge="1" parent="pkg4" source="c_usuario" target="c_reporte">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="e_tarea_inc" value="0..1   espejo GLPI #ID (0=huérfano RF-022) &gt;   0..1" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.75;exitY=0;entryX=0;entryY=0.75;endArrow=none;strokeColor=#0284C7;strokeWidth=2;fontSize=11;fontStyle=1;fontColor=#0284C7;labelBackgroundColor=#FFFFFF;" edge="1" parent="1" source="c_tarea" target="c_incidente">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="342" y="370"/>
+              <mxPoint x="1100" y="370"/>
+              <mxPoint x="1100" y="292"/>
+            </Array>
+          </mxGeometry>
+        </mxCell>
+
+        <mxCell id="e_tarea_cod" value="0..1   respalda en código &gt;25% y 100% (0=huérfano RF-021) &gt;   0..*" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.75;exitY=1;entryX=0.25;entryY=1;endArrow=open;endSize=10;strokeColor=#0284C7;strokeWidth=2;fontSize=11;fontStyle=1;fontColor=#0284C7;labelBackgroundColor=#FFFFFF;" edge="1" parent="1" source="c_tarea" target="c_codigo">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="342" y="646"/>
+              <mxPoint x="1287" y="646"/>
+            </Array>
+          </mxGeometry>
+        </mxCell>
+
+        <mxCell id="e_tarea_exp" value="1   consolida en expediente v   1" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.35;exitY=1;entryX=0.35;entryY=0;endArrow=open;endSize=10;strokeColor=#B45F06;strokeWidth=2;fontSize=11;fontStyle=1;fontColor=#783F04;labelBackgroundColor=#FFFFFF;" edge="1" parent="1" source="c_tarea" target="c_expediente">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="e_hito_alerta" value="0..1   detona alerta (&gt;5d / retorno) &gt;   0..*" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=1;exitY=0.5;entryX=0;entryY=0.5;endArrow=open;endSize=10;strokeColor=#B45F06;strokeWidth=2;fontSize=11;fontStyle=1;fontColor=#783F04;labelBackgroundColor=#FFFFFF;" edge="1" parent="1" source="c_hito" target="c_alerta">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+
+        <mxCell id="e_dev_alerta" value="0..1   detona por sobrecarga &gt;40h v   0..*" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.5;exitY=1;entryX=0.5;entryY=0;endArrow=open;endSize=10;strokeColor=#2D7636;strokeWidth=2;fontSize=11;fontStyle=1;fontColor=#1B4D20;labelBackgroundColor=#FFFFFF;" edge="1" parent="1" source="c_dev" target="c_alerta">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="1950" y="370"/>
+              <mxPoint x="1635" y="370"/>
+              <mxPoint x="1635" y="662"/>
+              <mxPoint x="1380" y="662"/>
+            </Array>
+          </mxGeometry>
+        </mxCell>
+
+        <mxCell id="e_usr_exp" value="1..*   &lt; consulta tablero, filtra y audita en solo lectura (CU-04, CU-05, CU-06)   1" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0;exitY=0.5;entryX=0.5;entryY=1;endArrow=open;endSize=10;strokeColor=#56517E;strokeWidth=2;fontSize=11;fontStyle=1;fontColor=#3B365E;labelBackgroundColor=#FFFFFF;" edge="1" parent="1" source="c_usuario" target="c_indicador">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="1100" y="1092"/>
+              <mxPoint x="1100" y="1226"/>
+              <mxPoint x="250" y="1226"/>
+            </Array>
+          </mxGeometry>
+        </mxCell>
+
+        <mxCell id="footer_enums" value="&lt;b style=&quot;font-size:12.5px;color:#1F4E78;&quot;&gt;CATÁLOGO DE ENUMERACIONES («enumeration») Y DECISIONES ARQUITECTÓNICAS CRÍTICAS (UTPL Semana 4 · ISO/IEC/IEEE 42010)&lt;/b&gt;&lt;br/&gt;&lt;span style=&quot;font-size:11.5px;&quot;&gt;• &lt;b&gt;ModuloCoreFinanciero:&lt;/b&gt; {FitSwitch, SWI, CanalesElectronicos, Credito, Antifraude, Nomina} | • &lt;b&gt;EtapaOficial:&lt;/b&gt; {1_Analisis, 2_Desarrollo, 3_Certificacion, 4_Despliegue, 5_Estabilizacion} | • &lt;b&gt;NivelComplejidad:&lt;/b&gt; {Baja_2pts, Media_5pts, Alta_13pts}&lt;br/&gt;• &lt;b&gt;NivelSemaforo:&lt;/b&gt; {Verde_&lt;75%, Amarillo_75_100%, Rojo_&gt;100%} | • &lt;b&gt;TipoCommit:&lt;/b&gt; {feat, fix, test, refactor} | • &lt;b&gt;EstadoAlerta:&lt;/b&gt; {Emitida, EnSeguimiento, Atendida, Suprimida24h} | • &lt;b&gt;Rol en Desarrollador (Sin Herencia):&lt;/b&gt; Asignado Redmine, Autor GitLab, Revisor QA (+2h), Soporte GLPI (+4h/8h)&lt;br/&gt;• &lt;b&gt;Privacy by Design (LOPDP Ecuador / RNF-017):&lt;/b&gt; 100% enmascaramiento de PII de socios (cédulas, cuentas, correos) y modo estricto solo lectura (RNF-003, 0 escrituras en orígenes). &lt;b style=&quot;color:#15803D;&quot;&gt;✔ Sello de Verificación Final: CU-01 a CU-08 verificados al 100%.&lt;/b&gt;&lt;/span&gt;" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#F8FAFC;strokeColor=#1F4E78;strokeWidth=1.8;fontColor=#0F172A;align=left;verticalAlign=middle;spacingLeft=14;spacingRight=14;" vertex="1" parent="1">
+          <mxGeometry x="40" y="1245" width="2120" height="125" as="geometry"/>
+        </mxCell>
+
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>
