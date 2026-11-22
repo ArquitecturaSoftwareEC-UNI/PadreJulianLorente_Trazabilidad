@@ -1,0 +1,141 @@
+@startuml secuencia-cu05-filtrar-tablero
+autonumber "<b>[00]</b>"
+skinparam roundcorner 8
+skinparam shadowing false
+skinparam padding 4
+skinparam defaultFontName SansSerif
+skinparam defaultFontSize 11
+skinparam defaultFontColor #0F172A
+
+skinparam actor {
+  BackgroundColor #0F172A
+  BorderColor #0F172A
+  FontColor #0F172A
+}
+
+skinparam participant {
+  BackgroundColor #F8FAFC
+  BorderColor #64748B
+  FontColor #0F172A
+}
+
+skinparam sequence {
+  ArrowColor #334155
+  ArrowThickness 1.2
+  LifeLineBorderColor #0284C7
+  LifeLineBackgroundColor #E0F2FE
+  GroupBackgroundColor #F8FAFC
+  GroupBorderColor #64748B
+  GroupHeaderFontColor #0F172A
+  DividerBackgroundColor #F1F5F9
+  DividerBorderColor #CBD5E1
+}
+
+title Diagrama de Secuencia UML 2.5.1 — CU-05: Filtrar indicadores del tablero\n(Extensión de CU-04 [análisis focalizado] · Apertura < 300 ms · Recálculo <= 400 ms p95 · Retiro Selectivo de Etiquetas)
+
+' ==============================================================================
+' PARTICIPANTES (PATRÓN ROBUSTEZ ECB: ACTOR, BOUNDARY, CONTROL Y ENTIDADES)
+' ==============================================================================
+actor "Jefe de Desarrollo / PMO\n(Sesión Activa CU-04)" as Directivo #0F172A
+boundary "PanelFiltroTablero\nBoundary" as FilterBound #F1F5F9
+control "ControladorFiltrado\nTablero" as CtrlFilter #FEF3C7
+
+box "Entidades del Dominio (Semana 4 — docs/uml/diagrama-clases.puml)" #E0F2FE
+  entity "Sesion\nInstitucional" as E_Sesion #EEF2FF
+  entity "ExpedienteModulo\nFinanciero" as E_Exp #E0F2FE
+  entity "Actividad\nTrazable" as E_Act #E0F2FE
+end box
+
+' ==============================================================================
+' 1–2. APERTURA CONTEXTUAL DE DIMENSIONES (< 300 ms — RF-008, RNF-006)
+' ==============================================================================
+Directivo -> FilterBound : solicitarOpcionesFiltrado() [análisis focalizado]
+activate FilterBound
+FilterBound -> CtrlFilter : activarDimensionesSegmentacion()
+activate CtrlFilter
+
+CtrlFilter --> FilterBound : desplegarDimensionesDisponibles(desarrollador, modulo, etapa, fechas) [tiempo < 300 ms]
+FilterBound --> Directivo : presentarControlesSegmentacion(conservaMetricasContextuales)
+note over Directivo : Apertura en < 300 ms preservando el contexto visual general (RNF-006)
+
+' ==============================================================================
+' 3–4. VALIDACIÓN DE FECHAS Y RECÁLCULO MULTIDIMENSIONAL (<= 400 ms p95 — RNF-018)
+' ==============================================================================
+Directivo -> FilterBound : seleccionarCriteriosCombinados(desarrollador, moduloCore, etapa, rangoFechas)
+FilterBound -> CtrlFilter : ejecutarFiltradoMultidimensional(criteriosSeleccionados)
+
+alt 3a [break]: Criterio temporal inválido (fechaInicio > fechaFin o formato incorrecto)
+  CtrlFilter --> FilterBound : notificarErrorRangoFechas("Fecha inicial posterior a fecha final")
+  FilterBound --> Directivo : desplegarAdvertenciaSinAlterarVista("Rango de fechas no válido")
+  note over CtrlFilter : Fin excepcional (X): Rechaza la consulta preservando indicadores estables previos
+else 4c [break]: Fallo interno en consulta multidimensional
+  CtrlFilter --> FilterBound : notificarFalloInternoConsulta("Error al consultar almacenamiento consolidado")
+  FilterBound --> Directivo : notificarErrorYPreservarUltimosIndicadoresEstables()
+  note over CtrlFilter : Fin excepcional (X): Mantiene intactos los indicadores estables
+else Criterios Válidos: Intersección exacta en <= 400 ms (p95 sobre 5.000 registros — RNF-018)
+  CtrlFilter -> E_Sesion : aplicarFiltroMultidimensional(criteriosSeleccionados)
+  activate E_Sesion
+  E_Sesion --> CtrlFilter : actividadesInterseccion : Lista<ActividadTrazable>
+  deactivate E_Sesion
+
+  CtrlFilter -> E_Exp : calcularMapaCalorModulo()
+  activate E_Exp
+  E_Exp --> CtrlFilter : mapaCalorFiltrado : Decimal
+  deactivate E_Exp
+
+  CtrlFilter -> E_Exp : detectarCuellosDeBotellaEmbudo()
+  activate E_Exp
+  E_Exp --> CtrlFilter : cuellosBotellaFiltrados : Lista<EtapaOficialFlujo>
+  deactivate E_Exp
+
+  ' --- Manejo de Resultados vs Cero Coincidencias (RF-039) ---
+  alt 4a: Combinación sin resultados (Cero coincidencias — RF-039)
+    CtrlFilter --> FilterBound : notificarCeroResultados(criteriosSeleccionados)
+    FilterBound --> Directivo : desplegarAvisoCeroCoincidenciasYAccionLimpiar()
+    note over Directivo : Se conserva la estructura de la vista y se ofrece acción directa para limpiar filtros
+  else Intersección con coincidencias válidas
+    CtrlFilter --> FilterBound : entregarMetricasFiltradas(actividades, graficos, etiquetasActivas)
+    FilterBound --> Directivo : presentarTableroFiltrado(recálculo <= 400 ms sin parpadeos)
+    note over Directivo : Cabecera identifica cada etiqueta activa de forma individual (RF-028)
+  end
+end
+
+' ==============================================================================
+' FLUJO ALTERNO 4b: ACTUALIZACIÓN INCREMENTAL DE 5 MIN CON FILTROS ACTIVOS (RF-034)
+' ==============================================================================
+opt 4b: Sincronización periódica de CU-01 mientras existen filtros activos (RF-034)
+  CtrlFilter -> E_Sesion : aplicarFiltroMultidimensional(criteriosActivos)
+  activate E_Sesion
+  E_Sesion --> CtrlFilter : actividadesActualizadas : Lista<ActividadTrazable>
+  deactivate E_Sesion
+  CtrlFilter --> FilterBound : emitirActualizacionIncrementalFiltrada(actividadesActualizadas)
+  FilterBound --> Directivo : actualizarMetricasPreservandoFiltrosActivos()
+end
+
+' ==============================================================================
+' 6. RETIRO SELECTIVO DE ETIQUETAS Y RETORNO GLOBAL (RF-028, FLUJO 6a)
+' ==============================================================================
+alt Retiro selectivo de un criterio individual (RF-028)
+  Directivo -> FilterBound : retirarEtiquetaIndividual(claveCriterio)
+  FilterBound -> CtrlFilter : solicitarEliminacionCriterio(claveCriterio)
+  CtrlFilter -> E_Sesion : retirarCriterioFiltroIndividual(claveCriterio)
+  activate E_Sesion
+  E_Sesion --> CtrlFilter : criteriosRestantes : Mapa<Texto, Texto>
+  deactivate E_Sesion
+  CtrlFilter --> FilterBound : recalcularSobreCriteriosRestantes(criteriosRestantes)
+  FilterBound --> Directivo : actualizarVistaSinReiniciarConsulta()
+  note over Directivo : Recalcula al instante sobre los criterios que permanecen activos
+else 6a: Retiro completo de todos los filtros (o acción 'Limpiar Filtros' — RF-039)
+  Directivo -> FilterBound : ejecutarLimpiezaTotalFiltros()
+  FilterBound -> CtrlFilter : restablecerEstadoGlobal()
+  CtrlFilter -> E_Sesion : limpiarTodosLosFiltros()
+  activate E_Sesion
+  E_Sesion --> CtrlFilter : mapaVacio : Mapa<Texto, Texto>
+  deactivate E_Sesion
+  CtrlFilter --> FilterBound : retornarAEstadoGlobalConsolidado()
+  deactivate CtrlFilter
+  FilterBound --> Directivo : restablecerTableroGlobalCU04()
+  deactivate FilterBound
+  note over Directivo : Retorno limpio y coherente al estado global de CU-04
+end
+@enduml

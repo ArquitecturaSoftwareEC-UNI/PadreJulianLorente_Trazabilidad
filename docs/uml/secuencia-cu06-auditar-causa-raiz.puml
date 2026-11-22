@@ -1,0 +1,114 @@
+@startuml secuencia-cu06-auditar-causa-raiz
+autonumber "<b>[00]</b>"
+skinparam roundcorner 8
+skinparam shadowing false
+skinparam padding 4
+skinparam defaultFontName SansSerif
+skinparam defaultFontSize 11
+skinparam defaultFontColor #0F172A
+
+skinparam actor {
+  BackgroundColor #0F172A
+  BorderColor #0F172A
+  FontColor #0F172A
+}
+
+skinparam participant {
+  BackgroundColor #F8FAFC
+  BorderColor #64748B
+  FontColor #0F172A
+}
+
+skinparam sequence {
+  ArrowColor #334155
+  ArrowThickness 1.2
+  LifeLineBorderColor #0284C7
+  LifeLineBackgroundColor #E0F2FE
+  GroupBackgroundColor #F8FAFC
+  GroupBorderColor #64748B
+  GroupHeaderFontColor #0F172A
+  DividerBackgroundColor #F1F5F9
+  DividerBorderColor #CBD5E1
+}
+
+title Diagrama de Secuencia UML 2.5.1 — CU-06: Auditar trazabilidad de causa raíz\n(Desglose Causal de 4 Niveles · Retención 24 Meses · Diagnóstico en < 10 s · 100% Reproducibilidad Matemática RNF-001)
+
+' ==============================================================================
+' PARTICIPANTES (PATRÓN ROBUSTEZ ECB: ACTOR, BOUNDARY, CONTROL Y ENTIDADES)
+' ==============================================================================
+actor "Jefe de Desarrollo / PMO\n(Sesión Activa CU-03)" as Directivo #0F172A
+boundary "PanelAuditoria\nCausaRaizBoundary" as AuditBound #F1F5F9
+control "ControladorAuditoria\nCausaRaiz" as CtrlAudit #FEF3C7
+
+box "Entidades del Dominio (Semana 4 — docs/uml/diagrama-clases.puml)" #E0F2FE
+  entity "AuditorCompuerta\nLOPDP" as E_LOPDP #DCFCE7
+  entity "ExpedienteModulo\nFinanciero" as E_Exp #E0F2FE
+  entity "Actividad\nTrazable" as E_Act #E0F2FE
+  entity "Evidencia\nCodigo" as E_Evid #E0F2FE
+  entity "Asignacion\nActividad" as E_Asig #FEF3C7
+  entity "RegistroAuditoria\nCalculo" as E_Calc #DCFCE7
+end box
+
+' ==============================================================================
+' 1. SOLICITUD DE AUDITORÍA CAUSAL EN MODO SOLO LECTURA (RNF-003, RF-010)
+' ==============================================================================
+Directivo -> AuditBound : solicitarAuditoriaCausaRaiz(identificadorElemento, moduloCore)
+activate AuditBound
+AuditBound -> CtrlAudit : auditarCadenaCausal(identificadorElemento, moduloCore)
+activate CtrlAudit
+
+' ==============================================================================
+' 2. EVALUACIÓN DE VIGENCIA DE RETENCIÓN TÉCNICA (24 MESES — RNF-017)
+' ==============================================================================
+CtrlAudit -> E_LOPDP : evaluarVigenciaRetencion24Meses(fechaRegistroElemento, fechaActual)
+activate E_LOPDP
+E_LOPDP --> CtrlAudit : estaDentroDeRetencion : Booleano
+deactivate E_LOPDP
+
+alt 2b [break]: Expediente inexistente o depurado por superar retención (> 24 meses — RNF-017)
+  CtrlAudit --> AuditBound : notificarExpedienteNoDisponible("Elemento fuera de ventana de 24 meses o inexistente")
+  AuditBound --> Directivo : desplegarAvisoExpedienteNoEncontrado()
+  note over CtrlAudit : Fin excepcional (X): Termina sin generar datos incompletos ni engañosos
+else Expediente Vigente dentro de la ventana de 24 meses
+  CtrlAudit -> E_Exp : reconstruirCadenaCausal(identificadorElemento)
+  activate E_Exp
+  E_Exp --> CtrlAudit : expedienteCausal : ExpedienteModuloFinanciero
+  deactivate E_Exp
+end
+
+' ==============================================================================
+' 3. RECONSTRUCCIÓN CAUSAL Y ANÁLISIS DE BRECHAS (RF-010, RF-017, RF-021, RF-022, RF-038)
+' ==============================================================================
+alt 2a: Auditoría de actividad sin trazabilidad completa (RF-021, RF-022)
+  CtrlAudit --> AuditBound : presentarExpedienteParcialConEslabonFaltante("Sin tarea Redmine" / "Sin espejo GLPI")
+  note over AuditBound : Señala con claridad el origen no planificado (GitLab o GLPI),\nautor responsable y esfuerzo computado en su carga
+else 3a: Auditoría de tarea con brecha de evidencia (RF-038) o divergencia de autor (RF-017)
+  CtrlAudit --> AuditBound : presentarComparativaLadoALado(reportadoRedmineVsRealCodigo, asignadoRedmineVsAutorGitLab)
+  note over AuditBound : Exhibe lado a lado la falta de commits tipados/MR aprobado\no la divergencia entre asignado y autor real con QA cruzado
+else Cadena causal completa de 4 niveles
+  CtrlAudit --> AuditBound : presentarEslabonesCompletos(EpicaPOA, HistoriaSpec, TareaRedmine, EvidenciaGitLab)
+end
+
+' ==============================================================================
+' 4. VERIFICACIÓN DE RASTRO AUDITABLE INMUTABLE (100% REPRODUCIBILIDAD — RNF-001)
+' ==============================================================================
+CtrlAudit -> E_Calc : verificarReproducibilidad100Porciento()
+activate E_Calc
+
+alt 4a [break]: Fallo o corrupción en el rastro auditable inmutable (RNF-001, RNF-017)
+  E_Calc --> CtrlAudit : reproducibilidadInvalida = falso
+  deactivate E_Calc
+  CtrlAudit --> AuditBound : notificarCorrupcionRastroAuditable("Inconsistencia en huella de inmutabilidad")
+  AuditBound --> Directivo : interrumpirEntregaSinDatosIncompletos()
+  note over CtrlAudit : Fin excepcional (X): Aborta sin exponer información corrupta ni sin anonimizar
+else Reproducibilidad matemática del 100% verificada exitosamente
+  E_Calc --> CtrlAudit : reproducibilidadConfirmada = verdadero (fórmula, pesos y entradas íntegras)
+  activate E_Calc
+  deactivate E_Calc
+  CtrlAudit --> AuditBound : entregarDesgloseCausalYFormulaSellada(entradas, retornos, hallazgosSonar, eficiencia)
+  deactivate CtrlAudit
+  AuditBound --> Directivo : desplegarExpedienteCausaRaiz(ordenadoPorCriticidad)
+  deactivate AuditBound
+  note over Directivo : Jerarquización visual de criticidad permite definir acciones correctivas en < 10 s (RNF-007)\nFacilita transición directa hacia CU-07: Gestionar alerta operativa
+end
+@enduml

@@ -65,3 +65,7 @@ pnpm-debug.log*
 .env.local
 .env.*.local
 !.env.example
+
+# --- Binarios y herramientas locales ---
+plantuml.jar
+
