@@ -1,0 +1,136 @@
+@startuml secuencia-cu04-consultar-tablero
+autonumber "<b>[00]</b>"
+skinparam dpi 150
+skinparam roundcorner 10
+skinparam shadowing false
+skinparam defaultFontName SansSerif
+skinparam defaultFontSize 14
+skinparam defaultFontColor #0F172A
+skinparam maxMessageSize 260
+<style>
+  participant {
+    Padding 12
+  }
+</style>
+skinparam BoxPadding 8
+skinparam responseMessageBelowArrow true
+skinparam padding 3
+
+skinparam sequence {
+  ArrowColor #334155
+  ArrowThickness 1.5
+  ArrowFontSize 13
+  LifeLineBorderColor #94A3B8
+  LifeLineBackgroundColor #E0F2FE
+  GroupBackgroundColor #FFFFFF
+  GroupBorderColor #64748B
+  GroupHeaderFontSize 13
+  GroupFontSize 13
+  DividerBackgroundColor #E2E8F0
+  DividerBorderColor #94A3B8
+  DividerFontSize 15
+  DividerFontStyle bold
+  BoxBorderColor #CBD5E1
+}
+skinparam note {
+  BackgroundColor #FEF9C3
+  BorderColor #CA8A04
+  FontSize 12
+}
+skinparam actor {
+  BackgroundColor #0F172A
+  BorderColor #0F172A
+}
+
+title CU-04 · Consultar tablero de control\nVista única compartida (HTTPS TLS 1.3) · Carga ≤ 2 s p95 · Refresco incremental < 1 s · Cierre < 200 ms
+
+' ----------------------------------------------------------------------------
+' PARTICIPANTES (ECB) — Entidades 1:1 con Vista Lógica v2 (docs/vista-logica-clases.md)
+' ----------------------------------------------------------------------------
+actor "Jefe de Desarrollo\n/ PMO" as Dir
+boundary "Panel\nTablero de Control" as Panel #F1F5F9
+control "Controlador\nConsulta Tablero" as Ctrl #FEF3C7
+control "Controlador\nSincronización\n(CU-01)" as Sync #FEF3C7
+control "Controlador\nFiltrado Tablero\n(CU-05)" as CtrlF #FEF3C7
+
+box "Entidades del dominio (Vista Lógica v2)" #E0F2FE
+  entity "UsuarioGestion" as Usr #EEF2FF
+  entity "ModuloFinanciero" as Mod #E0F2FE
+  entity "HitoEtapa" as Hito #E0F2FE
+  entity "Desarrollador" as Dev #FEF3C7
+  entity "ProyectoPOA" as Proy #E0F2FE
+end box
+
+' ----------------------------------------------------------------------------
+== 1. Ingreso a la vista única de solo lectura (HTTPS TLS 1.3 · CU-03, RF-030, RF-032, RNF-013) ==
+Dir -> Panel ++ : solicitarAccesoTablero(credencialesSesionActiva)
+Panel -> Ctrl ++ : consultarEstadoConsolidado(credencialesSesionActiva)
+Ctrl -> Usr ++ : autenticarSesionTLS13()
+Usr --> Ctrl -- : sesionVigente
+
+' ----------------------------------------------------------------------------
+== 2. Recuperación desacoplada del almacenamiento consolidado (≤ 2 s p95 · RNF-008, RNF-014) ==
+alt 2c · Sesión institucional caducada o almacenamiento consolidado inaccesible
+  Ctrl --> Panel : notificarErrorAccesoOLectura("Sesión expirada o servicio temporalmente no disponible")
+  deactivate Ctrl
+  Panel --> Dir : desplegarMensajeReingresoOReintento()
+  deactivate Panel
+  note over Ctrl, Panel : FIN excepcional (X): sin exponer detalles técnicos internos
+else 2b · Ausencia total de sincronización inicial (sin ciclos previos de CU-01)
+  Ctrl --> Panel : notificarAusenciaConsolidacionInicial("Sin consolidación histórica inicial disponible")
+  deactivate Ctrl
+  Panel --> Dir : desplegarAvisoEsperaPrimerCiclo()
+  deactivate Panel
+  note over Ctrl, Panel : FIN excepcional (X): evita presentar métricas vacías engañosas
+else Proyecciones consolidadas disponibles (hasta 25 sesiones / 5.000 registros)
+  Ctrl -> Usr ++ : consultarYFiltrarTablero()
+  Usr --> Ctrl -- : listaExpedientesConsolidados
+  note right of Usr : Flujo 2a (RNF-008): si CU-01 reportó caída parcial,\nse entrega 100% del último snapshot válido con su marca temporal
+
+  Ctrl -> Mod ++ : evaluarCuelloBotellaEmbudo()
+  Mod --> Ctrl -- : tieneCuelloBotella (> 35% tareas activas)
+  Ctrl -> Hito ++ : detectarAtrasoCertificacion()
+  Hito --> Ctrl -- : atrasoCritico (> 5 d Certificación / > 2 d Despliegue)
+  Ctrl -> Dev ++ : calcularCargaLaboral40h()
+  Dev --> Ctrl -- : horasEfectivasSemana
+  Ctrl -> Dev ++ : determinarSemaforoCapacidad()
+  Dev --> Ctrl -- : semaforo (Verde / Amarillo / Rojo)
+  Ctrl -> Proy ++ : calcularDesviacionAvance()
+  Proy --> Ctrl -- : comparativaRealVsPlanificado
+
+  Ctrl --> Panel : entregarTableroConsolidado(tarjetas, semaforos, mapasCalor, embudo5Etapas)
+  deactivate Ctrl
+  Panel --> Dir : desplegarVistaUnicaSoloLectura(cargaInicial ≤ 2 s p95)
+  deactivate Panel
+  note over Dir : Desviaciones críticas en rojo identificables en máximo 5 segundos (RNF-005).\nFlujo 3a: adaptable a 1920×1080, 768×1024 y 360×640 px (RNF-012).
+end
+
+' ----------------------------------------------------------------------------
+== 3. Actualización incremental automática tras cada ciclo de 5 min (RF-034, RNF-014) ==
+loop Mientras la sesión permanezca abierta [cada 5 min, al concluir CU-01]
+  Sync ->> Ctrl ++ : notificarVariacionesConsolidadas(elementosModificados)
+  Ctrl ->> Panel ++ : transmitirActualizacionIncremental(elementosModificados) [latencia < 1 s]
+  Panel ->> Dir : refrescarSoloElementosModificadosSinRecargar()
+  deactivate Panel
+  deactivate Ctrl
+end
+
+' ----------------------------------------------------------------------------
+== 4. Extensión opcional a CU-05 y cierre determinista de sesión (RF-008, RNF-011) ==
+opt Requiere análisis focalizado («extend» CU-05 · RF-008)
+  Dir -> Panel ++ : solicitarOpcionesSegmentacion()
+  Panel -> CtrlF ++ : activarDimensionesFiltrado()
+  CtrlF --> Panel -- : dimensionesDisponibles(desarrollador, modulo, etapa, fechas) [< 300 ms]
+  Panel --> Dir -- : presentarControlesFiltrado()
+  note right of CtrlF : Continúa en secuencia-cu05-filtrar-tablero.puml
+end
+
+opt 5a · Cierre voluntario de sesión o expiración por inactividad (RNF-011)
+  Dir -> Panel ++ : cerrarSesionInstitucional()
+  Panel -> Ctrl ++ : finalizarCanalYLiberarRecursos()
+  Ctrl -> Usr ++ : gestionarAlertaOperativa()
+  Usr --> Ctrl -- : bitacoraConsolidadaYRecursosLiberados (< 200 ms, 0 conexiones huérfanas)
+  Ctrl --> Panel -- : confirmacionCierreLimpio()
+  Panel --> Dir -- : sesionFinalizada()
+end
+@enduml

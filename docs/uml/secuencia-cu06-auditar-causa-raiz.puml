@@ -1,0 +1,112 @@
+@startuml secuencia-cu06-auditar-causa-raiz
+autonumber "<b>[00]</b>"
+skinparam dpi 150
+skinparam roundcorner 10
+skinparam shadowing false
+skinparam defaultFontName SansSerif
+skinparam defaultFontSize 14
+skinparam defaultFontColor #0F172A
+skinparam maxMessageSize 260
+<style>
+  participant {
+    Padding 14
+  }
+</style>
+skinparam BoxPadding 10
+skinparam responseMessageBelowArrow true
+skinparam padding 3
+
+skinparam sequence {
+  ArrowColor #334155
+  ArrowThickness 1.5
+  ArrowFontSize 13
+  LifeLineBorderColor #94A3B8
+  LifeLineBackgroundColor #E0F2FE
+  GroupBackgroundColor #FFFFFF
+  GroupBorderColor #64748B
+  GroupHeaderFontSize 13
+  GroupFontSize 13
+  DividerBackgroundColor #E2E8F0
+  DividerBorderColor #94A3B8
+  DividerFontSize 15
+  DividerFontStyle bold
+  BoxBorderColor #CBD5E1
+}
+skinparam note {
+  BackgroundColor #FEF9C3
+  BorderColor #CA8A04
+  FontSize 12
+}
+skinparam actor {
+  BackgroundColor #0F172A
+  BorderColor #0F172A
+}
+
+title CU-06 · Auditar trazabilidad de causa raíz\nCadena 4 niveles (RF-010) · Diagnóstico < 10 s (RNF-007) · Reproducibilidad 100% (RNF-001) · Privacidad LOPDP (RNF-017)
+
+' ----------------------------------------------------------------------------
+' PARTICIPANTES (ECB) — Entidades 1:1 con Vista Lógica v2 (docs/vista-logica-clases.md)
+' ----------------------------------------------------------------------------
+actor "Jefe de Desarrollo\n/ PMO" as Dir
+boundary "Panel Auditoría\nCausa Raíz" as PanelA #F1F5F9
+control "Controlador Auditoría\nCausa Raíz" as CtrlA #FEF3C7
+
+box "Entidades del dominio (Vista Lógica v2)" #E0F2FE
+  entity "ExpedienteTrazabilidad" as Exp #DCFCE7
+  entity "TareaIssue" as Tarea #E0F2FE
+  entity "Desarrollador" as Dev #FEF3C7
+  entity "IndicadorDesempeno" as Ind #DCFCE7
+end box
+
+' ----------------------------------------------------------------------------
+== 1. Solicitud de auditoría causal en modo solo lectura (HTTPS TLS 1.3 · RF-010, RNF-003) ==
+Dir -> PanelA ++ : solicitarAuditoriaCausaRaiz(elementoSeleccionado, moduloCore)
+PanelA -> CtrlA ++ : auditarCadenaCausal(elementoSeleccionado, moduloCore)
+
+' ----------------------------------------------------------------------------
+== 2. Verificación LOPDP, ventana de retención (24 meses) y recuperación causal (RNF-017) ==
+CtrlA -> Exp ++ : verificarCompuertaLOPDP()
+Exp --> CtrlA -- : anonimizadoYEnVentana24Meses
+
+break 2b · Expediente inexistente o depurado por superar la retención técnica (> 24 meses)
+  CtrlA --> PanelA : notificarAusenciaExpediente("Registro inexistente o fuera de retención de 24 meses")
+  PanelA --> Dir : desplegarAvisoExpedienteNoDisponible()
+  note over CtrlA, Exp : FIN excepcional (X): no se reconstruye expediente incompleto ni engañoso
+end
+
+CtrlA -> Exp ++ : reconstruirCausaRaiz()
+Exp --> CtrlA -- : expedienteCausalCompleto
+note right of Exp : Recupera Épica POA ➔ Historia REQ/INI.TI ➔ Tarea #ID ➔\nRama/MR/Commits tipados, ticket GLPI #ID, 5 etapas,\nretornos por fallo y hallazgos SonarQube (solo lectura)
+
+' ----------------------------------------------------------------------------
+== 3. Análisis de brechas de trazabilidad, evidencia y autoría (RF-017, RF-021, RF-022, RF-038) ==
+alt 2a · Expediente parcial de actividad sin trazabilidad completa (RF-021 / RF-022)
+  CtrlA --> PanelA : prepararDesgloseParcialConEslabonFaltante("Sin tarea Redmine" / "Sin espejo GLPI #ID")
+  note over PanelA : Expone origen no planificado (GitLab o GLPI),\nautor/responsable, repositorio y esfuerzo en carga
+else 3a · Brecha entre avance reportado y código (RF-038) o divergencia autor/asignado (RF-017)
+  CtrlA -> Tarea ++ : validarRespaldoEnCodigo()
+  Tarea --> CtrlA -- : comparativaReportadoVsCodigo
+  CtrlA -> Dev ++ : auditarDivergenciaAutoria()
+  Dev --> CtrlA -- : divergenciaYRevisoresQA
+  CtrlA --> PanelA : prepararComparativaLadoALado(comparativaReportadoVsCodigo, divergenciaYRevisoresQA)
+else Cadena causal íntegra de 4 niveles
+  CtrlA --> PanelA : prepararCadenaCompleta4Niveles(expedienteCausalCompleto)
+end
+
+' ----------------------------------------------------------------------------
+== 4. Verificación de reproducibilidad matemática inmutable (100% · RNF-001) y cierre (< 10 s · RNF-007) ==
+CtrlA -> Ind ++ : calcularEficiencia7030()
+Ind --> CtrlA -- : eficienciaVerificada
+CtrlA -> Ind ++ : sellarRastroInmutable()
+Ind --> CtrlA -- : rastroInmutableIntegro (retención ≥ 12 meses)
+
+break 4a · Fallo o corrupción en el rastro auditable inmutable (RNF-001, RNF-017)
+  CtrlA --> PanelA : notificarErrorIntegridadRastro("No es posible reproducir al 100% el cálculo")
+  PanelA --> Dir : interrumpirEntregaSinDatosIncompletosNiSinEnmascarar()
+  note over CtrlA, Ind : FIN excepcional (X): aborta protegiendo exactitud matemática y privacidad LOPDP
+end
+
+CtrlA --> PanelA -- : entregarExpedienteAuditable(cadenaCausal, entradasFormula, enlacesOrigen)
+PanelA --> Dir -- : desplegarAuditoriaJerarquizadaPorCriticidad(< 10 s · RNF-007)
+note over Dir : Permite decidir acciones correctivas en < 10 s\ny pasar a gestionar la alerta relacionada (CU-07)
+@enduml

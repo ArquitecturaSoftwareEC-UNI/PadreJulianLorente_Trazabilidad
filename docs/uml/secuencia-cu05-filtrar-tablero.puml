@@ -1,0 +1,137 @@
+@startuml secuencia-cu05-filtrar-tablero
+autonumber "<b>[00]</b>"
+skinparam dpi 150
+skinparam roundcorner 10
+skinparam shadowing false
+skinparam defaultFontName SansSerif
+skinparam defaultFontSize 14
+skinparam defaultFontColor #0F172A
+skinparam maxMessageSize 260
+<style>
+  participant {
+    Padding 14
+  }
+</style>
+skinparam BoxPadding 10
+skinparam responseMessageBelowArrow true
+skinparam padding 3
+
+skinparam sequence {
+  ArrowColor #334155
+  ArrowThickness 1.5
+  ArrowFontSize 13
+  LifeLineBorderColor #94A3B8
+  LifeLineBackgroundColor #E0F2FE
+  GroupBackgroundColor #FFFFFF
+  GroupBorderColor #64748B
+  GroupHeaderFontSize 13
+  GroupFontSize 13
+  DividerBackgroundColor #E2E8F0
+  DividerBorderColor #94A3B8
+  DividerFontSize 15
+  DividerFontStyle bold
+  BoxBorderColor #CBD5E1
+}
+skinparam note {
+  BackgroundColor #FEF9C3
+  BorderColor #CA8A04
+  FontSize 12
+}
+skinparam actor {
+  BackgroundColor #0F172A
+  BorderColor #0F172A
+}
+
+title CU-05 · Filtrar indicadores del tablero («extend» CU-04)\nApertura < 300 ms (RNF-006) · Recálculo multidimensional ≤ 400 ms p95 (RNF-018) · Etiquetas individuales (RF-028)
+
+' ----------------------------------------------------------------------------
+' PARTICIPANTES (ECB) — Entidades 1:1 con Vista Lógica v2 (docs/vista-logica-clases.md)
+' ----------------------------------------------------------------------------
+actor "Jefe de Desarrollo\n/ PMO" as Dir
+boundary "Panel\nFiltro Tablero" as PanelF #F1F5F9
+control "Controlador\nFiltrado Tablero" as CtrlF #FEF3C7
+control "Controlador\nSincronización\n(CU-01)" as Sync #FEF3C7
+
+box "Entidades del dominio (Vista Lógica v2)" #E0F2FE
+  entity "UsuarioGestion" as Usr #EEF2FF
+  entity "ModuloFinanciero" as Mod #E0F2FE
+  entity "HitoEtapa" as Hito #E0F2FE
+  entity "Desarrollador" as Dev #FEF3C7
+end box
+
+' ----------------------------------------------------------------------------
+== 1. Apertura contextual de dimensiones (< 300 ms · RF-008, RNF-006) ==
+Dir -> PanelF ++ : activarAnalisisFocalizado()
+PanelF -> CtrlF ++ : habilitarDimensionesFiltrado()
+CtrlF --> PanelF -- : dimensiones(desarrollador, moduloCore, etapaOficial, rangoFechas) [< 300 ms]
+PanelF --> Dir -- : mostrarControlesConservandoMetricasGenerales()
+note over Dir : Conserva indicadores generales visibles para comparación (RF-008)
+
+' ----------------------------------------------------------------------------
+== 2. Validación de fechas y recálculo multidimensional (≤ 400 ms p95 · RF-009, RNF-018) ==
+Dir -> PanelF ++ : seleccionarCriteriosSimultaneos(desarrollador, moduloCore, etapa, rangoFechas)
+PanelF -> CtrlF ++ : aplicarInterseccionMultidimensional(criteriosSeleccionados)
+
+alt 3a · Criterio de fechas inválido (fecha inicial posterior a final o formato no admitido)
+  CtrlF --> PanelF : notificarRangoFechasInvalido("La fecha inicial no puede superar la final")
+  deactivate CtrlF
+  PanelF --> Dir : advertirErrorSinAlterarIndicadoresVigentes()
+  deactivate PanelF
+  note over CtrlF, PanelF : FIN excepcional (X): rechaza el recálculo preservando vista estable previa
+else 4c · Fallo interno en el cálculo de intersección multidimensional
+  CtrlF --> PanelF : notificarFalloConsultaConsolidada("No se pudo recalcular la vista filtrada")
+  deactivate CtrlF
+  PanelF --> Dir : mantenerUltimosIndicadoresEstables()
+  deactivate PanelF
+  note over CtrlF, PanelF : FIN excepcional (X): registra error técnico sin corromper la vista
+else Criterios válidos (intersección exacta sobre hasta 5.000 registros en ≤ 400 ms p95)
+  CtrlF -> Usr ++ : consultarYFiltrarTablero()
+  Usr --> CtrlF -- : expedientesInterseccion
+
+  alt 4a · Combinación sin resultados (cero coincidencias · RF-039)
+    CtrlF --> PanelF : notificarCeroCoincidencias(criteriosSeleccionados)
+    PanelF --> Dir : mostrarAvisoCeroResultadosYAccionLimpiar()
+    note over Dir : Conserva íntegro el diseño del tablero y ofrece limpieza directa
+  else Intersección con coincidencias válidas
+    CtrlF -> Mod ++ : evaluarCuelloBotellaEmbudo()
+    Mod --> CtrlF -- : cuellosBotellaFiltrados
+    CtrlF -> Hito ++ : detectarAtrasoCertificacion()
+    Hito --> CtrlF -- : atrasosEtapasFiltrados
+    CtrlF -> Dev ++ : determinarSemaforoCapacidad()
+    Dev --> CtrlF -- : semaforosFiltrados
+    CtrlF --> PanelF : entregarVistaFocalizada(metricas, graficos, etiquetasActivas)
+    PanelF --> Dir : presentarIndicadoresFiltradosSinParpadeos(≤ 400 ms p95)
+    note over Dir : Cabecera expone cada criterio activo como etiqueta individual (RF-028)
+  end
+end
+
+' ----------------------------------------------------------------------------
+== 3. Actualización periódica cada 5 min preservando filtros activos (Flujo 4b · RF-034) ==
+opt 4b · Concluye un ciclo de CU-01 mientras existen filtros aplicados
+  Sync ->> CtrlF ++ : notificarVariacionesConsolidadas(elementosModificados)
+  CtrlF -> Usr ++ : consultarYFiltrarTablero()
+  Usr --> CtrlF -- : expedientesActualizadosConMismosCriterios
+  CtrlF ->> PanelF ++ : transmitirActualizacionIncrementalFiltrada(expedientesActualizados)
+  PanelF ->> Dir : refrescarVistaSinPerderFiltrosActivos()
+  deactivate PanelF
+  deactivate CtrlF
+end
+
+' ----------------------------------------------------------------------------
+== 4. Retiro selectivo de etiquetas y retorno al estado global (RF-028, RF-039, Flujo 6a) ==
+alt Retiro selectivo de una etiqueta individual (RF-028)
+  Dir -> PanelF ++ : retirarEtiquetaFiltroIndividual(claveCriterio)
+  PanelF -> CtrlF ++ : recalcularSobreCriteriosRestantes(criteriosRestantes)
+  CtrlF -> Usr ++ : consultarYFiltrarTablero()
+  Usr --> CtrlF -- : expedientesRecalculados
+  CtrlF --> PanelF -- : entregarMetricasRecalculadas(criteriosRestantes)
+  PanelF --> Dir -- : actualizarVistaSinReiniciarConsulta()
+else 6a · Retiro completo de criterios o acción "Limpiar todos los filtros" (RF-039)
+  Dir -> PanelF ++ : limpiarTodosLosFiltros()
+  PanelF -> CtrlF ++ : restablecerEstadoGlobalCU04()
+  CtrlF -> Usr ++ : consultarYFiltrarTablero()
+  Usr --> CtrlF -- : expedientesGlobalesVigentes
+  CtrlF --> PanelF -- : retornarVistaGlobalConsolidada()
+  PanelF --> Dir -- : restablecerTableroGlobalCU04()
+end
+@enduml

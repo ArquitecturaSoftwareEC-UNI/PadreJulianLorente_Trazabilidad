@@ -1,0 +1,146 @@
+@startuml secuencia-cu02-emitir-alerta
+autonumber "<b>[00]</b>"
+skinparam dpi 150
+skinparam roundcorner 10
+skinparam shadowing false
+skinparam defaultFontName SansSerif
+skinparam defaultFontSize 14
+skinparam defaultFontColor #0F172A
+skinparam maxMessageSize 260
+<style>
+  participant {
+    Padding 14
+  }
+</style>
+skinparam BoxPadding 10
+skinparam responseMessageBelowArrow true
+skinparam padding 3
+
+skinparam sequence {
+  ArrowColor #334155
+  ArrowThickness 1.5
+  ArrowFontSize 13
+  LifeLineBorderColor #94A3B8
+  LifeLineBackgroundColor #E0F2FE
+  GroupBackgroundColor #FFFFFF
+  GroupBorderColor #64748B
+  GroupHeaderFontSize 13
+  GroupFontSize 13
+  DividerBackgroundColor #E2E8F0
+  DividerBorderColor #94A3B8
+  DividerFontSize 15
+  DividerFontStyle bold
+  BoxBorderColor #CBD5E1
+}
+skinparam note {
+  BackgroundColor #FEF9C3
+  BorderColor #CA8A04
+  FontSize 12
+}
+skinparam actor {
+  BackgroundColor #0F172A
+  BorderColor #0F172A
+}
+
+title CU-02 · Emitir alerta operativa («extend» CU-01)\nEvaluación < 200 ms (RNF-010) · Anti-spam 24 h (RF-023) · Despacho cifrado ≥ TLS 1.2 (RNF-015) · Bitácora 100% (RNF-004)
+
+' ----------------------------------------------------------------------------
+' PARTICIPANTES (ECB) — Entidades 1:1 con Vista Lógica v2 (docs/vista-logica-clases.md)
+' ----------------------------------------------------------------------------
+control "Controlador\nSincronización\n(CU-01)" as Sync #FEF3C7
+control "Controlador\nEmisión Alertas" as Ctrl #FEF3C7
+
+box "Entidades del dominio (Vista Lógica v2)" #E0F2FE
+  entity "AlertaOperativa" as Alerta #EEF2FF
+  entity "DespachoNotificacion" as Desp #DCFCE7
+end box
+
+box "Adaptadores de notificación (RNF-015, RNF-016)" #F8FAFC
+  boundary "Adaptador\nCanal Mensajería" as AdMsg #F1F5F9
+  boundary "Adaptador\nServicio Correo" as AdMail #F1F5F9
+end box
+
+box "Canales corporativos externos" #F1F5F9
+  actor "Canal de Mensajería\nCorporativo" as Msg #475569
+  actor "Servicio de Correo\nCorporativo" as Mail #475569
+end box
+
+' ----------------------------------------------------------------------------
+== 1. Evaluación de umbrales (< 200 ms) y redacción ejecutiva (RF-006, RF-031, RNF-010) ==
+Sync ->> Ctrl ++ : <<extend>> evaluarYEmitirAlerta(expedienteConsolidado, puntajeEficiencia)
+note left of Ctrl : Invocación asíncrona desde CU-01:\nno bloquea el ciclo ETL de 5 min (RNF-016)
+Ctrl -> Alerta ++ : evaluarUmbralEn200ms()
+Alerta --> Ctrl -- : umbralSuperado = verdadero (mensajeEjecutivoClaro)
+note right of Alerta : Dispara por > 40 h, > 5 d en Certificación,\nretorno por fallo, Prioridad 1 o cambio prioridad.\nMensaje en español directo sin códigos crudos.
+
+break 1a · Fallo interno en motor de evaluación o tiempo excedido (≥ 200 ms)
+  note over Ctrl, Alerta : FIN excepcional (X): registra error técnico sin emitir alertas erróneas
+end
+
+' ----------------------------------------------------------------------------
+== 2. Política anti-spam de 24 h y estado gestionado en CU-07 (RF-023, RF-026) ==
+critical Región crítica anti-spam (ventana móvil de 24 horas)
+  Ctrl -> Alerta ++ : verificarSupresion24Horas()
+  Alerta --> Ctrl -- : suprimidaAntiSpam24h
+
+  break 3a · Alerta idéntica en 24 h o marcada "Atendida / EnSeguimiento" (CU-07)
+    Ctrl -> Desp ++ : registrarBitacora100PorCiento()
+    Desp --> Ctrl -- : resultadoEntrega = Suprimida24h
+    note over Ctrl, Desp : FIN alterno: se audita la supresión sin saturar canales corporativos
+  end
+end
+
+' ----------------------------------------------------------------------------
+== 3. Despacho cifrado al Canal de Mensajería y conmutación ante fallo (RF-024, RF-025, RNF-015) ==
+Ctrl -> Desp ++ : despacharCanalMensajeria()
+Desp --> Ctrl -- : listoParaEnvioMensajeria
+Ctrl -> AdMsg ++ : transmitirNotificacionMensajeria(destinatarios, mensajeEjecutivoClaro, cifrado = "TLS >= 1.2")
+AdMsg -> Msg ++ : entregarAvisoCifrado(mensajeEjecutivoClaro)
+
+alt Entrega exitosa en Canal de Mensajería Corporativo
+  Msg --> AdMsg -- : confirmacionRecepcion
+  AdMsg --> Ctrl -- : entregaMensajeriaExitosa = verdadero
+  Ctrl -> Desp ++ : registrarBitacora100PorCiento()
+  Desp --> Ctrl -- : resultadoEntrega = Enviada
+else 4a · Fallo o rechazo del Canal de Mensajería (conmutación obligatoria · RF-025)
+  Msg --> AdMsg -- : rechazoOIndisponibilidad
+  AdMsg --> Ctrl -- : entregaMensajeriaExitosa = falso
+  Ctrl -> Desp ++ : escalarACorreoPorFallo()
+  Desp --> Ctrl -- : conmutacionCorreoActivada
+  Ctrl -> AdMail ++ : transmitirNotificacionCorreo(destinatarios, mensajeEjecutivoClaro, cifrado = "TLS >= 1.2")
+  AdMail -> Mail ++ : entregarCorreoCorporativoCifrado(asunto, mensajeEjecutivoClaro)
+  Mail --> AdMail -- : confirmacionEntregaCorreo
+  AdMail --> Ctrl -- : entregaCorreoExitosa = verdadero
+  Ctrl -> Desp ++ : registrarBitacora100PorCiento()
+  Desp --> Ctrl -- : resultadoEntrega = ConmutadaACorreo
+end
+
+' ----------------------------------------------------------------------------
+== 4. Escalamiento adicional por Servicio de Correo Corporativo (RF-025, RNF-015) ==
+opt > 5 días hábiles en Certificación, incidente Prioridad 1 o cambio de prioridad POA
+  Ctrl -> Desp ++ : escalarACorreoPorFallo()
+  Desp --> Ctrl -- : escalamientoCorreoAprobado
+  Ctrl -> AdMail ++ : transmitirNotificacionCorreo(destinatarios, mensajeEjecutivoClaro, cifrado = "TLS >= 1.2")
+  AdMail -> Mail ++ : entregarCorreoEscalamientoCifrado(asunto, mensajeEjecutivoClaro)
+  Mail --> AdMail -- : confirmacionEntregaCorreo
+  AdMail --> Ctrl -- : entregaEscalamientoExitosa = verdadero
+  Ctrl -> Desp ++ : registrarBitacora100PorCiento()
+  Desp --> Ctrl -- : resultadoEntrega = Enviada
+end
+
+' ----------------------------------------------------------------------------
+== 5. Excepción: caída simultánea de ambos canales corporativos (RNF-004) ==
+break 5a · Fallan simultáneamente Canal de Mensajería y Servicio de Correo Corporativo
+  Ctrl -> Desp ++ : registrarBitacora100PorCiento()
+  Desp --> Ctrl -- : resultadoEntrega = EntregaFallida
+  note right of Desp
+    Persistencia durable al 100%: ID único, fecha/hora,
+    categoría, destinatarios y estado EntregaFallida
+    para visibilidad en vista única y reintento posterior.
+  end note
+  note over Ctrl, Desp : FIN excepcional (X): no se cumplió distribución externa, cero pérdida en bitácora
+end
+
+deactivate Ctrl
+note over Sync, Ctrl : Fin del proceso asíncrono: no retorna bloqueo hacia CU-01
+@enduml

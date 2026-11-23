@@ -1,0 +1,137 @@
+@startuml secuencia-cu01a-extraccion-privacidad
+autonumber "<b>[00]</b>"
+skinparam dpi 150
+skinparam roundcorner 10
+skinparam shadowing false
+skinparam defaultFontName SansSerif
+skinparam defaultFontSize 14
+skinparam defaultFontColor #0F172A
+skinparam maxMessageSize 260
+<style>
+  participant {
+    Padding 12
+  }
+</style>
+skinparam BoxPadding 8
+skinparam responseMessageBelowArrow true
+skinparam padding 3
+
+skinparam sequence {
+  ArrowColor #334155
+  ArrowThickness 1.5
+  ArrowFontSize 13
+  LifeLineBorderColor #94A3B8
+  LifeLineBackgroundColor #E0F2FE
+  GroupBackgroundColor #FFFFFF
+  GroupBorderColor #64748B
+  GroupHeaderFontSize 13
+  GroupFontSize 13
+  DividerBackgroundColor #E2E8F0
+  DividerBorderColor #94A3B8
+  DividerFontSize 15
+  DividerFontStyle bold
+  BoxBorderColor #CBD5E1
+}
+skinparam note {
+  BackgroundColor #FEF9C3
+  BorderColor #CA8A04
+  FontSize 12
+}
+skinparam actor {
+  BackgroundColor #0F172A
+  BorderColor #0F172A
+}
+
+title CU-01 (1/2) · Sincronizar y consolidar trazabilidad: extracción concurrente y compuerta LOPDP\nCiclo ETL cada 5 min · Solo lectura (RNF-003) · Resiliencia por snapshot (RNF-008) · Privacidad LOPDP 2021 (RNF-017)
+
+' ----------------------------------------------------------------------------
+' PARTICIPANTES (ECB): un borde por actor primario y uno por cada sistema externo
+' Entidades 1:1 con Vista Lógica v2 (docs/vista-logica-clases.md)
+' ----------------------------------------------------------------------------
+actor "Tiempo\n(Temporizador CRON)" as Cron
+boundary "Temporizador\nCron" as CronB #F1F5F9
+control "Controlador\nSincronización" as Ctrl #FEF3C7
+
+box "Entidades del dominio (Vista Lógica v2)" #E0F2FE
+  entity "ExpedienteTrazabilidad" as Exp #DCFCE7
+end box
+
+box "Adaptadores de solo lectura (RNF-003, RNF-008, RNF-016)" #F8FAFC
+  boundary "Adaptador\nRedmine" as BRed #F1F5F9
+  boundary "Adaptador\nGLPI" as BGlpi #F1F5F9
+  boundary "Adaptador\nGitLab" as BGit #F1F5F9
+  boundary "Adaptador\nSonarQube" as BSonar #F1F5F9
+end box
+
+box "Fuentes externas" #F1F5F9
+  actor "Redmine" as Red #475569
+  actor "GLPI" as Glpi #475569
+  actor "GitLab" as Git #475569
+  actor "SonarQube" as Sonar #475569
+end box
+
+' ----------------------------------------------------------------------------
+== 1. Disparo periódico del ciclo (cada 5 min · RF-029) ==
+Cron -> CronB ++ : dispararIntervaloPeriodico(minutos = 5)
+CronB -> Ctrl ++ : ejecutarCicloSincronizacion(marcaTemporalDisparo)
+
+' ----------------------------------------------------------------------------
+== 2. Extracción concurrente en solo lectura (timeout ≤ 10 s · RF-011, RNF-003) ==
+par Redmine (Épicas POA, Historias REQ/INI.TI y Tareas #ID)
+  Ctrl -> BRed ++ : extraerRegistrosSoloLectura(credencialesLectura)
+  BRed -> Red ++ : consultarPlanificacionSoloLectura()
+  Red --> BRed -- : registrosRedmineCrudos
+  BRed --> Ctrl -- : loteRedmine
+else GLPI (tickets de soporte e incidentes críticos core)
+  Ctrl -> BGlpi ++ : extraerRegistrosSoloLectura(credencialesLectura)
+  BGlpi -> Glpi ++ : consultarIncidentesSoloLectura()
+  Glpi --> BGlpi -- : registrosGLPICrudos
+  BGlpi --> Ctrl -- : loteGLPI
+else GitLab (ramas, Merge Requests, commits tipados y CI/CD)
+  Ctrl -> BGit ++ : extraerRegistrosSoloLectura(credencialesLectura)
+  BGit -> Git ++ : consultarActividadCodigoSoloLectura()
+  Git --> BGit -- : registrosGitLabCrudos
+  BGit --> Ctrl -- : loteGitLab
+else SonarQube (bugs críticos y vulnerabilidades abiertas)
+  Ctrl -> BSonar ++ : extraerRegistrosSoloLectura(credencialesLectura)
+  BSonar -> Sonar ++ : consultarCalidadTecnicaSoloLectura()
+  Sonar --> BSonar -- : registrosSonarCrudos
+  BSonar --> Ctrl -- : loteSonar
+end
+
+' ----------------------------------------------------------------------------
+== 3. Tolerancia a fallos y contingencia de snapshot parcial (RNF-008) ==
+break 2b · Caen todas las fuentes externas o se rechazan credenciales tras 3 reintentos
+  Ctrl --> CronB : notificarAbortoFalloTotal("Sin acceso a fuentes externas; línea vigente intacta")
+  note over Ctrl, Exp : FIN excepcional (X): no se sobreescribe ningún dato consolidado previo
+end
+
+opt 2a · Falla transitoria o espera > 10 s en una sola plataforma externa
+  loop hasta 3 reintentos automáticos [espera > 10 s o indisponibilidad temporal]
+    Ctrl -> BRed ++ : reintentarExtraccionSoloLectura(intentoActual)
+    BRed --> Ctrl -- : resultadoReintento
+  end
+  note right of BRed : Ilustrado con Redmine;\naplica a cualquier fuente caída
+  note over Ctrl, Exp
+    Si la fuente permanece inalcanzable tras 3 reintentos:
+    se conserva y reutiliza su último snapshot válido con marca temporal
+    (estado SincronizacionParcialSnapshot en ExpedienteTrazabilidad).
+    Prohibido reclasificar sus actividades como "sin trazabilidad".
+  end note
+end
+
+' ----------------------------------------------------------------------------
+== 4. Compuerta obligatoria de privacidad LOPDP 2021 (RNF-017) ==
+Ctrl -> Exp ++ : verificarCompuertaLOPDP()
+Exp --> Ctrl -- : anonimizadoLOPDP
+note right of Exp : Enmascara o elimina 100% de PII de socios\n(cédulas, cuentas, correos particulares).\nRetención histórica técnica mínima: 24 meses.
+
+break 3a · No se garantiza el 100% de eliminación/enmascaramiento de PII
+  Ctrl --> CronB : notificarAbortoPorRiesgoLOPDP("Lote descartado antes de transformar o persistir")
+  note over Ctrl, Exp : FIN excepcional (X): estado AbortadoPorRiesgoLOPDP; 0 datos persistidos
+end
+
+note over Ctrl, Sonar #D1FAE5
+  **Continúa en CU-01 (2/2):** correlación de 4 niveles, carga 40 h, eficiencia 70/30 y persistencia idempotente
+end note
+@enduml

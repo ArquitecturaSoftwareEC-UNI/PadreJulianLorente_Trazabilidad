@@ -1,0 +1,152 @@
+@startuml secuencia-cu01b-calculo-persistencia
+autonumber "<b>[00]</b>"
+skinparam dpi 150
+skinparam roundcorner 10
+skinparam shadowing false
+skinparam defaultFontName SansSerif
+skinparam defaultFontSize 14
+skinparam defaultFontColor #0F172A
+skinparam maxMessageSize 250
+<style>
+  participant {
+    Padding 10
+  }
+</style>
+skinparam BoxPadding 8
+skinparam responseMessageBelowArrow true
+skinparam padding 3
+
+skinparam sequence {
+  ArrowColor #334155
+  ArrowThickness 1.5
+  ArrowFontSize 13
+  LifeLineBorderColor #94A3B8
+  LifeLineBackgroundColor #E0F2FE
+  GroupBackgroundColor #FFFFFF
+  GroupBorderColor #64748B
+  GroupHeaderFontSize 13
+  GroupFontSize 13
+  DividerBackgroundColor #E2E8F0
+  DividerBorderColor #94A3B8
+  DividerFontSize 15
+  DividerFontStyle bold
+  BoxBorderColor #CBD5E1
+}
+skinparam note {
+  BackgroundColor #FEF9C3
+  BorderColor #CA8A04
+  FontSize 12
+}
+
+title CU-01 (2/2) · Sincronizar y consolidar trazabilidad: correlación, fórmulas y persistencia idempotente\nJerarquía 4 niveles · Evidencia >25%/100% · Carga 40 h · Eficiencia 70/30 · Idempotencia RNF-009 · Extensión CU-02
+
+' ----------------------------------------------------------------------------
+' PARTICIPANTES (ECB) — Entidades 1:1 con Vista Lógica v2 (docs/vista-logica-clases.md)
+' ----------------------------------------------------------------------------
+boundary "Temporizador\nCron" as CronB #F1F5F9
+control "Controlador\nSincronización" as Ctrl #FEF3C7
+
+box "Entidades del dominio (Vista Lógica v2)" #E0F2FE
+  entity "ProyectoPOA" as Proy #E0F2FE
+  entity "TareaIssue" as Tarea #E0F2FE
+  entity "IncidenteSoporte" as Inc #E0F2FE
+  entity "ActividadCodigo" as Cod #E0F2FE
+  entity "ReporteCalidad" as Cal #E0F2FE
+  entity "Desarrollador" as Dev #FEF3C7
+  entity "RetornoFallo" as Ret #E0F2FE
+  entity "ExpedienteTrazabilidad" as Exp #DCFCE7
+  entity "IndicadorDesempeno" as Ind #DCFCE7
+end box
+
+control "Controlador\nEmisión Alertas\n(CU-02)" as Alert #FEF3C7
+
+' ----------------------------------------------------------------------------
+note over CronB, Ctrl #D1FAE5
+  **Continúa de CU-01 (1/2):** lote depurado y verificado (anonimizadoLOPDP = verdadero)
+end note
+activate CronB
+activate Ctrl
+
+' ----------------------------------------------------------------------------
+== 5. Correlación de 4 niveles, cruces tolerantes y segregación (RF-012..RF-022) ==
+opt 5a · Cruce tolerante de referencia GLPI #ID en Redmine (RF-013)
+  Ctrl -> Inc ++ : normalizarReferenciaGLPI()
+  Inc --> Ctrl -- : codigoGLPINormalizado
+  Ctrl -> Tarea ++ : enlazarIncidenteGLPI()
+  Tarea --> Ctrl -- : enlaceExitoso
+end
+
+opt 5b · Retroceso desde pruebas CI/CD o Certificación hacia Desarrollo (RF-015)
+  Ctrl -> Ret ++ : registrarRetornoADesarrollo()
+  Ret --> Ctrl -- : totalRetornos
+  Ctrl -> Ret ++ : aplicarDescuentoDiezPuntos()
+  Ret --> Ctrl -- : penalizacionRetorno (-10 pts)
+end
+
+alt 6a · Rama/commit/MR en GitLab sin tarea en Redmine (RF-021)
+  Ctrl -> Cod ++ : clasificarCodigoSinTrazabilidad()
+  Cod --> Ctrl -- : marcadoSinTrazabilidadPlanificada
+else 6b · Ticket GLPI activo sin petición espejo en Redmine (RF-022)
+  Ctrl -> Inc ++ : clasificarSoporteSinTrazabilidad()
+  Inc --> Ctrl -- : marcadoSoporteSinTrazabilidad
+  Ctrl -> Inc ++ : asignarEsfuerzoAutomatico()
+  Inc --> Ctrl -- : horasSoporte (4 h estándar / 8 h crítico core)
+else Actividad con vínculo completo de 4 niveles
+  note over Ctrl, Inc : Clasificada en uno de los 6 módulos financieros (RF-018)
+end
+
+' ----------------------------------------------------------------------------
+== 6. Validación de respaldo en código y divergencia de autoría (RF-017, RF-038) ==
+Ctrl -> Cod ++ : verificarCommitsTipados25PorCiento()
+Cod --> Ctrl -- : respaldoMayor25Valido
+Ctrl -> Cod ++ : validarCierreCienPorCiento()
+Cod --> Ctrl -- : cierre100Valido
+Ctrl -> Tarea ++ : validarRespaldoEnCodigo()
+Tarea --> Ctrl -- : avanceRealVerificado
+note right of Tarea : Flujo 7a: sin respaldo en código se marca\nbrecha y prevalece el progreso verificable
+
+Ctrl -> Dev ++ : auditarDivergenciaAutoria()
+Dev --> Ctrl -- : hayDivergenciaAutoria
+note right of Dev : Flujo 7b: registra divergencia autor/asignado\ny revisores reales de QA cruzado (+2 h / 1 pt)
+
+' ----------------------------------------------------------------------------
+== 7. Cálculo de 5 etapas, carga semanal 40 h y eficiencia 70/30 (RF-001..RF-005, RF-019) ==
+Ctrl -> Tarea ++ : cambiarEtapaOficial()
+Tarea --> Ctrl -- : etapaOficial (1..5)
+Ctrl -> Cal ++ : calcularPenalizacionCalidad()
+Cal --> Ctrl -- : penalizacionSonar (-5 pts por bug crítico/vulnerabilidad)
+Ctrl -> Dev ++ : calcularCargaLaboral40h()
+Dev --> Ctrl -- : horasEfectivasSemana
+Ctrl -> Dev ++ : determinarSemaforoCapacidad()
+Dev --> Ctrl -- : semaforo (Verde < 75% / Amarillo 75-100% / Rojo > 100%)
+Ctrl -> Proy ++ : calcularDesviacionAvance()
+Proy --> Ctrl -- : avancePlanificadoVsReal
+Ctrl -> Ind ++ : calcularEficiencia7030()
+Ind --> Ctrl -- : puntajeEficiencia (70% avance + 30% calidad)
+
+' ----------------------------------------------------------------------------
+== 8. Consolidación atómica idempotente y rastro inmutable (RNF-001, RNF-009) ==
+critical Región crítica · 0% duplicados (llave natural compuesta)
+  Ctrl -> Exp ++ : unificarHistorial4Niveles()
+  Exp --> Ctrl -- : expedienteConsolidado
+  Ctrl -> Ind ++ : sellarRastroInmutable()
+  Ind --> Ctrl -- : huellaSellada (retención ≥ 12 meses)
+
+  break 8a · Conflicto irrecuperable durante la consolidación final
+    Ctrl --> CronB : notificarFalloConsolidacion("Escrituras parciales revertidas; línea vigente intacta")
+    note over Ctrl, Ind : FIN excepcional (X): reversión atómica completa del ciclo
+  end
+end
+
+' ----------------------------------------------------------------------------
+== 9. Extensión condicional a CU-02 y cierre del ciclo ==
+opt Umbral crítico superado (> 40 h, > 5 d Certificación, retorno, P1 o cambio prioridad · RF-025, RF-031)
+  Ctrl ->> Alert ++ : <<extend>> evaluarYEmitirAlerta(expedienteConsolidado, puntajeEficiencia)
+  note right of Alert : Despacho asíncrono (RNF-016):\nno bloquea el ciclo ETL de 5 min
+  deactivate Alert
+end
+
+Ctrl --> CronB : cicloCompletadoExitosamente(resumenConsolidado)
+deactivate Ctrl
+deactivate CronB
+@enduml
