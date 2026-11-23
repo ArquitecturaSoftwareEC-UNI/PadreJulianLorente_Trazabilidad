@@ -1,0 +1,142 @@
+@startuml secuencia-cu01b-calculo-persistencia
+autonumber "<b>[00]</b>"
+skinparam dpi 150
+skinparam roundcorner 10
+skinparam shadowing false
+skinparam defaultFontName SansSerif
+skinparam defaultFontSize 14
+skinparam defaultFontColor #0F172A
+skinparam maxMessageSize 260
+skinparam ParticipantPadding 14
+skinparam BoxPadding 10
+skinparam responseMessageBelowArrow true
+skinparam padding 3
+
+skinparam sequence {
+  ArrowColor #334155
+  ArrowThickness 1.5
+  ArrowFontSize 13
+  LifeLineBorderColor #94A3B8
+  LifeLineBackgroundColor #E0F2FE
+  GroupBackgroundColor #FFFFFF
+  GroupBorderColor #64748B
+  GroupHeaderFontSize 13
+  GroupFontSize 13
+  DividerBackgroundColor #E2E8F0
+  DividerBorderColor #94A3B8
+  DividerFontSize 15
+  DividerFontStyle bold
+  BoxBorderColor #CBD5E1
+}
+skinparam note {
+  BackgroundColor #FEF9C3
+  BorderColor #CA8A04
+  FontSize 12
+}
+
+title CU-01 (2/2) · Sincronizar y consolidar trazabilidad: correlación, cálculo y persistencia atómica\nRespaldo en código · Carga 40 h · Eficiencia 70/30 · Idempotencia · Extensión a CU-02
+
+' ----------------------------------------------------------------------------
+' PARTICIPANTES (ECB)
+' ----------------------------------------------------------------------------
+boundary "Temporizador\nCron" as CronB #F1F5F9
+control "Controlador\nSincronización" as Ctrl #FEF3C7
+
+box "Entidades del dominio" #E0F2FE
+  entity "Actividad\nTrazable" as Act #E0F2FE
+  entity "Evidencia\nCódigo" as Evid #E0F2FE
+  entity "Desarrollador" as Dev #FEF3C7
+  entity "Épica\nPOA" as Epica #E0F2FE
+  entity "Expediente\nMódulo Financiero" as Exp #E0F2FE
+  entity "Registro\nAuditoría Cálculo" as Aud #DCFCE7
+  entity "Ciclo\nSincronización" as Ciclo #DCFCE7
+end box
+
+control "Controlador\nEmisión Alertas\n(CU-02)" as Alert #FEF3C7
+
+' ----------------------------------------------------------------------------
+note over CronB, Ctrl #D1FAE5
+  **Continúa de CU-01 (1/2):** el lote ya está depurado (0% de PII expuesta)
+end note
+activate CronB
+activate Ctrl
+
+' ----------------------------------------------------------------------------
+== 5. Correlación y clasificación (RF-015, RF-021, RF-022) ==
+opt 5b · Rechazo en Certificación o CI/CD (RF-015)
+  Ctrl -> Act ++ : registrarRetornoPorFallo(etapaOrigen, motivoRechazo)
+  Act --> Ctrl -- : totalRetornos
+  note right of Act : Penaliza −10 pts en el componente de calidad
+end
+
+alt 6a · Trabajo en GitLab sin tarea en Redmine (RF-021)
+  Ctrl -> Act ++ : clasificarActividadSinTrazabilidad(origen = GITLAB)
+  Act --> Ctrl -- : TRABAJO_CODIGO_SIN_TRAZABILIDAD_PLANIFICADA
+else 6b · Incidente GLPI sin petición espejo en Redmine (RF-022)
+  Ctrl -> Act ++ : clasificarActividadSinTrazabilidad(origen = GLPI)
+  Act --> Ctrl -- : INCIDENTE_SOPORTE_SIN_TRAZABILIDAD_DESARROLLO
+  note right of Act : Esfuerzo de soporte automático:\n4 h estándar / 8 h crítico core
+else Actividad con trazabilidad completa
+  note over Ctrl, Act : Sin clasificación especial
+end
+
+' ----------------------------------------------------------------------------
+== 6. Respaldo real en código (RF-038) ==
+Ctrl -> Evid ++ : contabilizarCommitsTipados(mensajesCommit)
+Evid --> Ctrl -- : conteo (feat, fix, test, refactor)
+Ctrl -> Evid ++ : validarRequisitosAvance25Porciento()
+Evid --> Ctrl -- : tieneRamaYCommitsTipados
+Ctrl -> Evid ++ : validarRequisitosCierre100Porciento()
+Evid --> Ctrl -- : tieneMRAprobadoYPipelineExitoso
+Ctrl -> Act ++ : verificarRespaldoAvanceEnCodigo(evidencia)
+Act --> Ctrl -- : avanceRealVerificado
+
+' ----------------------------------------------------------------------------
+== 7. Cálculo de indicadores ==
+Ctrl -> Act ++ : normalizarEtapaOficial(estadoOrigen, tieneMRAprobado, pipelineCICDExitoso)
+Act --> Ctrl -- : etapaNormalizada
+Ctrl -> Dev ++ : calcularCargaLaboralEfectiva()
+Dev --> Ctrl -- : horasEfectivasSemanales
+Ctrl -> Dev ++ : determinarSemaforoOcupacion()
+Dev --> Ctrl -- : VERDE / AMARILLO / ROJO
+Ctrl -> Dev ++ : calcularEficienciaPonderada(retornos, hallazgosCriticos)
+Dev --> Ctrl -- : eficiencia (70% avance + 30% calidad)
+Ctrl -> Epica ++ : consolidarAvanceRealVsPlanificado()
+Epica --> Ctrl -- : desviacionAvancePuntos
+Ctrl -> Exp ++ : unificarExpedienteCronologico(actividadesModulo)
+Exp --> Ctrl -- : expedienteConsolidado
+
+' ----------------------------------------------------------------------------
+== 8. Persistencia atómica e idempotente (RNF-001, RNF-009) ==
+critical Región crítica · 0% de duplicados
+  Ctrl -> Aud ++ : sellarRegistroInmutable(entradasInmutables, resultadoCalculado)
+  Aud --> Ctrl -- : registroSellado
+  note right of Aud : Retención inmutable ≥ 12 meses
+  Ctrl -> Ciclo ++ : consolidarLoteIdempotente(expedientesConsolidados)
+  Ciclo --> Ctrl -- : consolidacionExitosa
+
+  break 8a · Conflicto irrecuperable en la persistencia
+    Ctrl -> Ciclo ++ : revertirLotePorConflicto(detalleError)
+    Ciclo --> Ctrl -- : vacio
+    Ctrl --> CronB : notificarFalloConsolidacion("Lote revertido íntegramente")
+    note over Ctrl, Ciclo : FIN excepcional: se conserva la línea base vigente
+  end
+end
+
+' ----------------------------------------------------------------------------
+== 9. Extensión a CU-02 y cierre del ciclo ==
+opt Umbral crítico superado (carga > 40 h, certificación > 5 d, retorno, P1 · RF-031)
+  Ctrl ->> Alert ++ : <<extend>> evaluarYEmitirAlerta(indicadoresConsolidados)
+  note right of Alert : Despacho asíncrono (RNF-016):\nno bloquea el cierre del ciclo
+  deactivate Alert
+end
+
+Ctrl --> CronB : cicloCompletadoExitosamente(resumenConsolidado)
+deactivate Ctrl
+deactivate CronB
+
+note over Ctrl, Ciclo
+  Casos omitidos aquí por claridad: 5a (cruce tolerante de "GLPI #ID") y 7b (QA cruzado).
+  Detalle completo en secuencia-cu01-sincronizar-trazabilidad.puml
+end note
+@enduml

@@ -1,144 +1,138 @@
 @startuml secuencia-cu04-consultar-tablero
 autonumber "<b>[00]</b>"
-skinparam roundcorner 8
+skinparam dpi 150
+skinparam roundcorner 10
 skinparam shadowing false
-skinparam padding 4
 skinparam defaultFontName SansSerif
-skinparam defaultFontSize 11
+skinparam defaultFontSize 14
 skinparam defaultFontColor #0F172A
-
-skinparam actor {
-  BackgroundColor #0F172A
-  BorderColor #0F172A
-  FontColor #0F172A
-}
-
-skinparam participant {
-  BackgroundColor #F8FAFC
-  BorderColor #64748B
-  FontColor #0F172A
-}
+skinparam maxMessageSize 260
+skinparam ParticipantPadding 12
+skinparam BoxPadding 8
+skinparam responseMessageBelowArrow true
+skinparam padding 3
 
 skinparam sequence {
   ArrowColor #334155
-  ArrowThickness 1.2
-  LifeLineBorderColor #0284C7
+  ArrowThickness 1.5
+  ArrowFontSize 13
+  LifeLineBorderColor #94A3B8
   LifeLineBackgroundColor #E0F2FE
-  GroupBackgroundColor #F8FAFC
+  GroupBackgroundColor #FFFFFF
   GroupBorderColor #64748B
-  GroupHeaderFontColor #0F172A
-  DividerBackgroundColor #F1F5F9
-  DividerBorderColor #CBD5E1
+  GroupHeaderFontSize 13
+  GroupFontSize 13
+  DividerBackgroundColor #E2E8F0
+  DividerBorderColor #94A3B8
+  DividerFontSize 15
+  DividerFontStyle bold
+  BoxBorderColor #CBD5E1
+}
+skinparam note {
+  BackgroundColor #FEF9C3
+  BorderColor #CA8A04
+  FontSize 12
+}
+skinparam actor {
+  BackgroundColor #0F172A
+  BorderColor #0F172A
 }
 
-title Diagrama de Secuencia UML 2.5.1 — CU-04: Consultar tablero de control\n(Vista Única Compartida · Carga Inicial <= 2 s p95 · Refresco Incremental < 1 s · Cierre Limpio < 200 ms)
+title CU-04 · Consultar tablero de control\nVista única compartida · Carga inicial ≤ 2 s (p95) · Refresco incremental < 1 s · Cierre limpio ≤ 200 ms
 
-' ==============================================================================
-' PARTICIPANTES (PATRÓN ROBUSTEZ ECB: ACTOR, BOUNDARY, CONTROL Y ENTIDADES)
-' ==============================================================================
-actor "Jefe de Desarrollo / PMO\n(Sesión Institucional CU-03)" as Directivo #0F172A
-boundary "PanelTableroControl\nBoundary" as PanelBound #F1F5F9
-control "ControladorConsulta\nTablero" as CtrlDash #FEF3C7
+' ----------------------------------------------------------------------------
+' PARTICIPANTES (ECB)
+' ----------------------------------------------------------------------------
+actor "Jefe de Desarrollo\n/ PMO" as Dir
+boundary "Panel\nTablero de Control" as Panel #F1F5F9
+control "Controlador\nConsulta Tablero" as Ctrl #FEF3C7
+control "Controlador\nSincronización\n(CU-01)" as Sync #FEF3C7
+control "Controlador\nFiltrado Tablero\n(CU-05)" as CtrlF #FEF3C7
 
-box "Entidades del Dominio (Semana 4 — docs/uml/diagrama-clases.puml)" #E0F2FE
-  entity "Sesion\nInstitucional" as E_Sesion #EEF2FF
-  entity "ExpedienteModulo\nFinanciero" as E_Exp #E0F2FE
-  entity "Desarrollador" as E_Dev #FEF3C7
-  entity "Epica\nPOA" as E_Epica #E0F2FE
-  entity "SnapshotFuente\nExterna" as E_Snap #DCFCE7
-  entity "Alerta\nOperativa" as E_Alert #EEF2FF
+box "Entidades del dominio" #E0F2FE
+  entity "Sesión\nInstitucional" as Ses #EEF2FF
+  entity "Snapshot\nFuente Externa" as Snap #DCFCE7
+  entity "Expediente\nMódulo Financiero" as Exp #E0F2FE
+  entity "Desarrollador" as Dev #FEF3C7
+  entity "Épica\nPOA" as Epica #E0F2FE
 end box
 
-' ==============================================================================
-' 1. INGRESO A LA VISTA ÚNICA COMPARTIDA (HTTPS TLS 1.3 — RF-030, RF-032, RNF-013)
-' ==============================================================================
-Directivo -> PanelBound : solicitarAccesoTablero(identificadorSesion)
-activate PanelBound
-PanelBound -> CtrlDash : consultarEstadoConsolidado(identificadorSesion)
-activate CtrlDash
+' ----------------------------------------------------------------------------
+== 1. Ingreso a la vista única (HTTPS TLS 1.3 · RF-030, RF-032, RNF-013) ==
+Dir -> Panel ++ : solicitarAccesoTablero(identificadorSesion)
+Panel -> Ctrl ++ : consultarEstadoConsolidado(identificadorSesion)
 
-' ==============================================================================
-' 2. RECUPERACIÓN DESACOPLADA Y RESILIENCIA (RNF-008, RNF-014)
-' ==============================================================================
-alt 2c [break]: Indisponibilidad del almacenamiento consolidado o sesión caducada
-  CtrlDash --> PanelBound : notificarSesionInvalida("Sesión expirada o almacenamiento inaccesible")
-  PanelBound --> Directivo : desplegarMensajeReingreso("Por favor autentíquese nuevamente")
-  note over CtrlDash : Fin excepcional (X): Termina sin exponer trazas técnicas internas
-else 2b [break]: Ausencia total de sincronización inicial en el sistema
-  CtrlDash --> PanelBound : notificarAusenciaConsolidacionInicial("Sin ejecuciones previas de CU-01")
-  PanelBound --> Directivo : desplegarAvisoInformativo("Tablero en espera del primer ciclo de sincronización")
-  note over CtrlDash : Fin excepcional (X): Evita mostrar indicadores vacíos engañosos
-else 2a: Consulta con reporte de fallo externo parcial en CU-01 (Continuidad RNF-008)
-  CtrlDash -> E_Snap : verificarFrescuraDatos(instanteConsulta)
-  activate E_Snap
-  E_Snap --> CtrlDash : antiguedadDatos : Duracion
-  deactivate E_Snap
-  note right of CtrlDash : Entrega el 100% del último snapshot consolidado válido\ncon su marca temporal de última sincronización exitosa (RNF-008)
-else Flujo Básico Normal: Lectura sobre almacenamiento consolidado en <= 2 s (p95 — RNF-014)
-  CtrlDash -> E_Exp : calcularMapaCalorModulo()
-  activate E_Exp
-  E_Exp --> CtrlDash : indiceCalorCritico : Decimal
-  deactivate E_Exp
+' ----------------------------------------------------------------------------
+== 2. Recuperación del estado consolidado (≤ 2 s p95 · RNF-014) ==
+alt 2c · Sesión institucional caducada
+  Ctrl --> Panel : notificarSesionInvalida("Sesión expirada")
+  deactivate Ctrl
+  Panel --> Dir : desplegarMensajeReingreso("Por favor autentíquese nuevamente")
+  deactivate Panel
+  note over Ctrl, Panel : FIN excepcional: sin exponer trazas técnicas internas
+else 2d · Almacenamiento consolidado inaccesible (RNF-008)
+  Ctrl --> Panel : notificarAlmacenamientoNoDisponible("Servicio temporalmente no disponible")
+  deactivate Ctrl
+  Panel --> Dir : desplegarAvisoServicioNoDisponible("Intente nuevamente en unos minutos")
+  deactivate Panel
+  note over Ctrl, Panel : FIN excepcional: no se culpa a la sesión de un fallo de infraestructura
+else 2b · Ausencia total de sincronización inicial
+  Ctrl --> Panel : notificarAusenciaConsolidacionInicial("Sin ejecuciones previas de CU-01")
+  deactivate Ctrl
+  Panel --> Dir : desplegarAvisoInformativo("Tablero en espera del primer ciclo de sincronización")
+  deactivate Panel
+  note over Ctrl, Panel : FIN excepcional: evita mostrar indicadores vacíos engañosos
+else Datos consolidados disponibles
+  opt 2a · CU-01 reportó un fallo externo parcial (RNF-008)
+    Ctrl -> Snap ++ : verificarFrescuraDatos(instanteConsulta)
+    Snap --> Ctrl -- : antiguedadDatos
+    note right of Snap : Se entrega el último snapshot válido\ncon su marca temporal de sincronización
+  end
 
-  CtrlDash -> E_Exp : detectarCuellosDeBotellaEmbudo()
-  activate E_Exp
-  E_Exp --> CtrlDash : cuellosBotella : Lista<EtapaOficialFlujo>
-  deactivate E_Exp
-  note right of E_Exp : Resalta en rojo etapas críticas (>35% tareas activas,\n>5d Certificación o >2d Despliegue — RF-036, RNF-005)
+  Ctrl -> Exp ++ : calcularMapaCalorModulo()
+  Exp --> Ctrl -- : indiceCalorCritico
+  Ctrl -> Exp ++ : detectarCuellosDeBotellaEmbudo()
+  Exp --> Ctrl -- : cuellosBotella
+  note right of Exp : Rojo si > 35% de tareas activas,\n> 5 d en Certificación o > 2 d en Despliegue
+  Ctrl -> Dev ++ : obtenerResumenTarjetaOperativa()
+  Dev --> Ctrl -- : resumenTarjetas
+  note right of Dev : Semáforo 40 h, tareas POA vs GLPI,\npuntos Fibonacci y QA cruzado
+  Ctrl -> Epica ++ : consolidarAvanceRealVsPlanificado()
+  Epica --> Ctrl -- : comparativaAvance
 
-  CtrlDash -> E_Dev : obtenerResumenTarjetaOperativa()
-  activate E_Dev
-  E_Dev --> CtrlDash : resumenTarjetas : Mapa<Texto, Texto>
-  deactivate E_Dev
-  note right of E_Dev : Semáforo base 40h, tareas POA vs GLPI,\npuntos Fibonacci 2/5/13 y QA cruzado (RF-035)
-
-  CtrlDash -> E_Epica : consolidarAvanceRealVsPlanificado()
-  activate E_Epica
-  E_Epica --> CtrlDash : comparativaAvance : Decimal
-  deactivate E_Epica
+  Ctrl --> Panel : entregarDatosTableroConsolidado(metricas, semaforos, embudo, mapasCalor)
+  deactivate Ctrl
+  Panel --> Dir : desplegarTableroControl(tiempoRespuesta ≤ 2 s p95)
+  deactivate Panel
+  note over Dir : Desviaciones críticas en rojo en ≤ 5 s (RNF-005)\nResoluciones 1920×1080, 768×1024 y 360×640 (RNF-012)
 end
 
-' ==============================================================================
-' 3–4. PRESENTACIÓN EJECUTIVA Y VISUALIZACIÓN INMEDIATA (RNF-002, RNF-005, RNF-012)
-' ==============================================================================
-CtrlDash --> PanelBound : entregarDatosTableroConsolidado(metricas, semaforos, embudo, mapasCalor)
-deactivate CtrlDash
-PanelBound --> Directivo : desplegarTableroControl(tiempoRespuesta <= 2 s p95)
-note over Directivo : Vista única adaptada a resoluciones 1920x1080, 768x1024 o 360x640 (RNF-012)\nIdentificación de desviaciones críticas en rojo en <= 5 s (RNF-005)
-
-' ==============================================================================
-' 5. REFRESCO INCREMENTAL PERIÓDICO CADA 5 MINUTOS (RF-034, RNF-014)
-' ==============================================================================
-loop Mientras la sesión permanezca activa en pantalla [cada 5 minutos tras fin de CU-01]
-  CtrlDash -> CtrlDash : detectarVariacionesConsolidadas(ultimoCicloConsolidado)
-  activate CtrlDash
-  deactivate CtrlDash
-  CtrlDash --> PanelBound : transmitirCambiosIncrementales(elementosCambiados) [latencia < 1 s]
-  PanelBound --> Directivo : refrescarElementosCambiadosSinRecargar()
+' ----------------------------------------------------------------------------
+== 3. Refresco incremental: el cierre de cada ciclo de CU-01 empuja los cambios (RF-034) ==
+loop Mientras la sesión permanezca abierta [cada 5 min, tras finalizar CU-01]
+  Sync ->> Ctrl ++ : notificarCicloConsolidado(elementosCambiados)
+  Ctrl ->> Panel ++ : transmitirCambiosIncrementales(elementosCambiados) [latencia < 1 s]
+  Panel ->> Dir : refrescarElementosCambiadosSinRecargar()
+  deactivate Panel
+  deactivate Ctrl
 end
 
-' ==============================================================================
-' EXTENSIÓN CONDICIONAL HACIA CU-05: FILTRAR INDICADORES DEL TABLERO
-' ==============================================================================
-opt Paso 6: Requerimiento de [análisis focalizado] por el directivo
-  Directivo -> PanelBound : solicitarSegmentacionTablero()
-  note right of PanelBound : Habilita el punto de extensión <<extend>> CU-05:\nFiltrar indicadores del tablero (RF-008)
+' ----------------------------------------------------------------------------
+== 4. Acciones opcionales del directivo ==
+opt Requiere análisis focalizado (extensión CU-05 · RF-008)
+  Dir -> Panel ++ : solicitarSegmentacionTablero()
+  Panel -> CtrlF ++ : activarDimensionesSegmentacion()
+  CtrlF --> Panel -- : desplegarDimensionesDisponibles(desarrollador, modulo, etapa, fechas) [< 300 ms]
+  Panel --> Dir -- : presentarControlesSegmentacion()
+  note right of CtrlF : Continúa en secuencia-cu05-filtrar-tablero.puml
 end
 
-' ==============================================================================
-' FLUJO ALTERNO 5a: CIERRE DETERMINISTA Y LIBERACIÓN DE RECURSOS (< 200 ms — RNF-011)
-' ==============================================================================
-opt 5a: Cierre voluntario de sesión o expiración por inactividad
-  Directivo -> PanelBound : cerrarSesionInstitucional()
-  PanelBound -> CtrlDash : solicitarCierreYLiberacionRecursos()
-  activate CtrlDash
-  CtrlDash -> E_Sesion : confirmarBitacoraYLiberarRecursos()
-  activate E_Sesion
-  E_Sesion --> CtrlDash : recursosLiberados = verdadero (tiempo <= 200 ms)
-  deactivate E_Sesion
-  CtrlDash --> PanelBound : confirmacionRecursosLiberados(0 conexiones huérfanas)
-  deactivate CtrlDash
-  PanelBound --> Directivo : sesionFinalizada()
-  deactivate PanelBound
+opt 5a · Cierre voluntario de sesión o expiración por inactividad
+  Dir -> Panel ++ : cerrarSesionInstitucional()
+  Panel -> Ctrl ++ : solicitarCierreYLiberacionRecursos()
+  Ctrl -> Ses ++ : confirmarBitacoraYLiberarRecursos()
+  Ses --> Ctrl -- : recursosLiberados = verdadero (≤ 200 ms · RNF-011)
+  Ctrl --> Panel -- : confirmacionRecursosLiberados(0 conexiones huérfanas)
+  Panel --> Dir -- : sesionFinalizada()
 end
 @enduml

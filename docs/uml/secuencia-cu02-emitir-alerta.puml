@@ -1,180 +1,139 @@
 @startuml secuencia-cu02-emitir-alerta
 autonumber "<b>[00]</b>"
-skinparam roundcorner 8
+skinparam dpi 150
+skinparam roundcorner 10
 skinparam shadowing false
-skinparam padding 4
 skinparam defaultFontName SansSerif
-skinparam defaultFontSize 11
+skinparam defaultFontSize 14
 skinparam defaultFontColor #0F172A
-
-skinparam actor {
-  BackgroundColor #0F172A
-  BorderColor #0F172A
-  FontColor #0F172A
-}
-
-skinparam participant {
-  BackgroundColor #F8FAFC
-  BorderColor #64748B
-  FontColor #0F172A
-}
+skinparam maxMessageSize 260
+skinparam ParticipantPadding 16
+skinparam BoxPadding 10
+skinparam responseMessageBelowArrow true
+skinparam padding 3
 
 skinparam sequence {
   ArrowColor #334155
-  ArrowThickness 1.2
-  LifeLineBorderColor #0284C7
+  ArrowThickness 1.5
+  ArrowFontSize 13
+  LifeLineBorderColor #94A3B8
   LifeLineBackgroundColor #E0F2FE
-  GroupBackgroundColor #F8FAFC
+  GroupBackgroundColor #FFFFFF
   GroupBorderColor #64748B
-  GroupHeaderFontColor #0F172A
-  DividerBackgroundColor #F1F5F9
-  DividerBorderColor #CBD5E1
+  GroupHeaderFontSize 13
+  GroupFontSize 13
+  DividerBackgroundColor #E2E8F0
+  DividerBorderColor #94A3B8
+  DividerFontSize 15
+  DividerFontStyle bold
+  BoxBorderColor #CBD5E1
+}
+skinparam note {
+  BackgroundColor #FEF9C3
+  BorderColor #CA8A04
+  FontSize 12
+}
+skinparam actor {
+  BackgroundColor #0F172A
+  BorderColor #0F172A
 }
 
-title Diagrama de Secuencia UML 2.5.1 — CU-02: Emitir alerta operativa\n(Evaluación < 200 ms · Supresión Anti-Spam 24h · Despacho Cifrado >= TLS 1.2 · Conmutación Automática por Fallo)
+title CU-02 · Emitir alerta operativa\nEvaluación < 200 ms · Anti-spam 24 h · Despacho cifrado TLS ≥ 1.2 · Conmutación automática por fallo
 
-' ==============================================================================
-' PARTICIPANTES (PATRÓN ROBUSTEZ ECB: ACTORES, BOUNDARIES, CONTROL Y ENTIDADES)
-' ==============================================================================
-actor "Tiempo\n(Temporizador CRON)" as Cron #0F172A
-boundary "DisparadorAlerta\nBoundary" as AlertBound #F1F5F9
-control "ControladorEmision\nAlertas" as CtrlAlert #FEF3C7
+' ----------------------------------------------------------------------------
+' PARTICIPANTES (ECB)
+' ----------------------------------------------------------------------------
+control "Controlador\nSincronización\n(CU-01)" as Sync #FEF3C7
+control "Controlador\nEmisión Alertas" as Ctrl #FEF3C7
 
-box "Entidades del Dominio (Semana 4 — docs/uml/diagrama-clases.puml)" #E0F2FE
-  entity "Alerta\nOperativa" as E_Alert #EEF2FF
-  entity "Desarrollador" as E_Dev #FEF3C7
-  entity "Actividad\nTrazable" as E_Act #E0F2FE
+box "Entidades del dominio" #E0F2FE
+  entity "Alerta\nOperativa" as Alerta #EEF2FF
 end box
 
-box "Adaptadores de Despacho Corporativo (RNF-015, RNF-016)" #F8FAFC
-  boundary "AdaptadorCanal\nMensajeriaCorporativo" as B_Msg #F1F5F9
-  boundary "AdaptadorServicio\nCorreoCorporativo" as B_Mail #F1F5F9
+box "Adaptadores de despacho (RNF-015, RNF-016)" #F8FAFC
+  boundary "Adaptador\nMensajería" as AdMsg #F1F5F9
+  boundary "Adaptador\nCorreo" as AdMail #F1F5F9
 end box
 
-box "Actores Secundarios / Canales Externos" #F1F5F9
-  actor "Canal de Mensajería\nCorporativo" as ExtMsg #475569
-  actor "Servicio de Correo\nCorporativo" as ExtMail #475569
+box "Canales externos" #F1F5F9
+  actor "Canal de Mensajería\nCorporativo" as Msg #475569
+  actor "Servicio de Correo\nCorporativo" as Mail #475569
 end box
 
-' ==============================================================================
-' 1. DISPARO CONDICIONAL DESDE CU-01 Y EVALUACIÓN ULTRARRÁPIDA (< 200 ms — RNF-010)
-' ==============================================================================
-Cron -> AlertBound : notificarUmbralSuperado(indicadoresConsolidados)
-activate AlertBound
-AlertBound -> CtrlAlert : procesarEmisionAlerta(indicadoresConsolidados)
-activate CtrlAlert
+' ----------------------------------------------------------------------------
+== 1. Evaluación del umbral (< 200 ms · RNF-010) ==
+Sync ->> Ctrl ++ : <<extend>> evaluarYEmitirAlerta(indicadoresConsolidados)
+note left of Ctrl : Llamada asíncrona: CU-01 no espera\nrespuesta; el resultado queda en\nel estado de la AlertaOperativa
+Ctrl -> Alerta ++ : evaluarReglasUmbralCritico(ocupacionHoras, diasCertificacion, retornos)
+Alerta --> Ctrl -- : umbralSuperado = verdadero
 
-CtrlAlert -> E_Alert : evaluarReglasUmbralCritico(ocupacionHoras, diasCertificacion, retornos)
-activate E_Alert
-E_Alert --> CtrlAlert : umbralSuperado = verdadero (evaluado en < 200 ms)
-deactivate E_Alert
-
-alt 1a [break]: Fallo en motor de evaluación o violación de umbral temporal (< 200 ms — RNF-010)
-  CtrlAlert --> AlertBound : notificarErrorEvaluacionReglas("Fallo interno en métricas / tiempo excedido")
-  note over CtrlAlert : Fin excepcional (X): Se registra error técnico sin emitir falsas alarmas
+break 1a · Falla del motor de reglas o tiempo excedido
+  note over Ctrl, Alerta : FIN excepcional: se registra el error técnico sin emitir falsas alarmas
 end
 
-' ==============================================================================
-' 2. REDACCIÓN EN LENGUAJE DIRECTO (RF-006)
-' ==============================================================================
-CtrlAlert -> E_Alert : redactarMensajeEjecutivoClaro(responsable, moduloCore, valorExacto)
-activate E_Alert
-E_Alert --> CtrlAlert : mensajeFormateado : Texto
-deactivate E_Alert
-note right of E_Alert : Redacción ejecutiva: Desarrollador, módulo financiero\ny valor exacto sin códigos crudos (RF-006)
+' ----------------------------------------------------------------------------
+== 2. Redacción en lenguaje directo (RF-006) ==
+Ctrl -> Alerta ++ : redactarMensajeEjecutivoClaro(responsable, moduloCore, valorExacto)
+Alerta --> Ctrl -- : mensajeFormateado
+note right of Alerta : Sin códigos crudos: desarrollador,\nmódulo financiero y valor exacto
 
-' ==============================================================================
-' 3. SUPRESIÓN ANTI-SPAM DE 24 HORAS Y VERIFICACIÓN DE ESTADO CU-07 (RF-023, RF-026)
-' ==============================================================================
-critical Región Crítica Atómica de Supresión Anti-Spam (RF-023, RNF-004)
-  CtrlAlert -> E_Alert : verificarSupresionAntiSpam24Horas(historialAlertas24h)
-  activate E_Alert
-  E_Alert --> CtrlAlert : esDuplicadaOAtendida : Booleano
-  deactivate E_Alert
+' ----------------------------------------------------------------------------
+== 3. Supresión anti-spam de 24 h (RF-023, RF-026, RNF-004) ==
+critical Región crítica anti-spam
+  Ctrl -> Alerta ++ : verificarSupresionAntiSpam24Horas(historialAlertas24h)
+  Alerta --> Ctrl -- : esDuplicadaOAtendida
 
-  alt 3a: Supresión anti-spam (alerta idéntica dentro de 24h o marcada como 'atendida'/'en seguimiento' en CU-07)
-    CtrlAlert -> E_Alert : registrarResultadoDespacho(canal = "NINGUNO", exitoso = falso, protocoloTLS = "N/A")
-    activate E_Alert
-    E_Alert --> CtrlAlert : estadoFinal = SUPRIMIDA_ANTISPAM_24H
-    deactivate E_Alert
-    CtrlAlert --> AlertBound : notificarAlertaSuprimidaPolitica24h()
-    note over CtrlAlert : Fin alterno: Se audita la supresión sin saturar canales directivos
+  break 3a · Alerta idéntica en 24 h o ya "atendida / en seguimiento" (CU-07)
+    Ctrl -> Alerta ++ : registrarResultadoDespacho(canal = "NINGUNO", exitoso = falso, protocoloTLS = "N/A")
+    Alerta --> Ctrl -- : SUPRIMIDA_ANTISPAM_24H
+    note over Ctrl, Alerta : FIN alterno: se audita la supresión sin saturar canales
   end
 end
 
-' ==============================================================================
-' 4. DESPACHO CIFRADO AL CANAL DE MENSAJERÍA CORPORATIVO (RF-024, RNF-015)
-' ==============================================================================
-CtrlAlert -> B_Msg : enviarMensajeAlerta(destinatarios, mensajeFormateado, protocolo = "TLS 1.2")
-activate B_Msg
-B_Msg -> ExtMsg : POST /webhook/alerts (cifrado >= TLS 1.2)
-activate ExtMsg
+' ----------------------------------------------------------------------------
+== 4. Despacho cifrado por mensajería, con conmutación por fallo (RF-024, RF-025) ==
+Ctrl -> AdMsg ++ : enviarMensajeAlerta(destinatarios, mensajeFormateado, protocolo = "TLS 1.2")
+AdMsg -> Msg ++ : POST /webhook/alerts (cifrado ≥ TLS 1.2)
 
-alt 4a: Fallo o rechazo en Canal de Mensajería Corporativo (Conmutación por Fallo — RF-025, RNF-016)
-  ExtMsg --> B_Msg : 503 Service Unavailable / Conexión rechazada
-  deactivate ExtMsg
-  B_Msg --> CtrlAlert : entregaMensajeriaFallida = falso
-  deactivate B_Msg
-  note right of CtrlAlert : Conmutación automática obligatoria por fallo de mensajería (RF-025)
-
-  CtrlAlert -> B_Mail : enviarCorreoAlertaConmutacion(destinatarios, mensajeFormateado, protocolo = "TLS 1.3")
-  activate B_Mail
-  B_Mail -> ExtMail : SMTP/TLS entregaNotificacionAlerta(asunto, cuerpo)
-  activate ExtMail
-  ExtMail --> B_Mail : 250 OK Message accepted for delivery
-  deactivate ExtMail
-  B_Mail --> CtrlAlert : entregaConmutadaExitosa = verdadero
-  deactivate B_Mail
-
-  CtrlAlert -> E_Alert : registrarResultadoDespacho(canal = "CORREO_CONMUTADO", exitoso = verdadero, protocoloTLS = "HTTPS TLS 1.3")
-  activate E_Alert
-  E_Alert --> CtrlAlert : estadoActual = CONMUTADA_CORREO_POR_FALLO
-  deactivate E_Alert
-else Entrega normal exitosa en Canal de Mensajería Corporativo
-  ExtMsg --> B_Msg : 200 OK Delivered
-  activate ExtMsg
-  deactivate ExtMsg
-  B_Msg --> CtrlAlert : entregaMensajeriaExitosa = verdadero
-  CtrlAlert -> E_Alert : registrarResultadoDespacho(canal = "MENSAJERIA_CORPORATIVA", exitoso = verdadero, protocoloTLS = "TLS 1.2")
-  activate E_Alert
-  E_Alert --> CtrlAlert : estadoActual = ENVIADA_MENSAJERIA
-  deactivate E_Alert
+alt Entrega normal exitosa
+  Msg --> AdMsg -- : 200 OK Delivered
+  AdMsg --> Ctrl -- : entregaMensajeriaExitosa = verdadero
+  Ctrl -> Alerta ++ : registrarResultadoDespacho(canal = "MENSAJERIA_CORPORATIVA", exitoso = verdadero)
+  Alerta --> Ctrl -- : ENVIADA_MENSAJERIA
+else 4a · Falla o rechazo del canal de mensajería (conmutación automática · RNF-016)
+  Msg --> AdMsg -- : 503 Service Unavailable
+  AdMsg --> Ctrl -- : entregaMensajeriaFallida = falso
+  Ctrl -> AdMail ++ : enviarCorreoAlertaConmutacion(destinatarios, mensajeFormateado, protocolo = "TLS 1.3")
+  AdMail -> Mail ++ : SMTP/TLS entregarNotificacionAlerta(asunto, cuerpo)
+  Mail --> AdMail -- : 250 OK Message accepted
+  AdMail --> Ctrl -- : entregaConmutadaExitosa = verdadero
+  Ctrl -> Alerta ++ : registrarResultadoDespacho(canal = "CORREO_CONMUTADO", exitoso = verdadero)
+  Alerta --> Ctrl -- : CONMUTADA_CORREO_POR_FALLO
 end
 
-' ==============================================================================
-' 5. ESCALAMIENTO ADICIONAL POR CORREO CORPORATIVO (RF-025, RNF-015)
-' ==============================================================================
-opt Paso 5: Escalamiento adicional por Correo (>5 días en Certificación, Prioridad 1 o Cambio Prioridad POA)
-  CtrlAlert -> B_Mail : enviarCorreoAlertaEscalamiento(destinatarios, mensajeFormateado, protocolo = "TLS 1.3")
-  activate B_Mail
-  B_Mail -> ExtMail : SMTP/TLS entregaCorreoEscalamiento(asunto, cuerpo)
-  activate ExtMail
-  ExtMail --> B_Mail : 250 OK Message accepted for delivery
-  deactivate ExtMail
-  B_Mail --> CtrlAlert : entregaCorreoEscalada = verdadero
-  deactivate B_Mail
-
-  CtrlAlert -> E_Alert : registrarResultadoDespacho(canal = "CORREO_ESCALAMIENTO", exitoso = verdadero, protocoloTLS = "HTTPS TLS 1.3")
-  activate E_Alert
-  E_Alert --> CtrlAlert : estadoActual = ESCALADA_CORREO
-  deactivate E_Alert
+' ----------------------------------------------------------------------------
+== 5. Escalamiento adicional por correo (RF-025, RNF-015) ==
+opt Más de 5 días en Certificación, Prioridad 1 o cambio de prioridad POA
+  Ctrl -> AdMail ++ : enviarCorreoAlertaEscalamiento(destinatarios, mensajeFormateado, protocolo = "TLS 1.3")
+  AdMail -> Mail ++ : SMTP/TLS entregarCorreoEscalamiento(asunto, cuerpo)
+  Mail --> AdMail -- : 250 OK Message accepted
+  AdMail --> Ctrl -- : entregaCorreoEscalada = verdadero
+  Ctrl -> Alerta ++ : registrarResultadoDespacho(canal = "CORREO_ESCALAMIENTO", exitoso = verdadero)
+  Alerta --> Ctrl -- : ESCALADA_CORREO
 end
 
-' ==============================================================================
-' EXCEPCIÓN 5a: CAÍDA SIMULTÁNEA DE AMBOS CANALES (PERSISTENCIA DURABLE RNF-004)
-' ==============================================================================
-alt 5a [break]: Caída simultánea de mensajería y correo corporativo (RNF-004, RNF-015)
-  CtrlAlert -> E_Alert : registrarResultadoDespacho(canal = "FALLO_SIMULTANEO_EXTERNO", exitoso = falso, protocoloTLS = "N/A")
-  activate E_Alert
-  E_Alert --> CtrlAlert : estadoActual = ENTREGA_FALLIDA
-  deactivate E_Alert
-  note right of E_Alert : Persistencia íntegra del 100% con ID único, fecha, categoría,\ndestinatarios y estado 'ENTREGA_FALLIDA' para visibilidad en vista única (RNF-004)
-  CtrlAlert --> AlertBound : notificarAlertaPersistidaConFalloEntrega()
-  note over CtrlAlert : Fin excepcional (X): Alerta guardada para reintento y consulta en tablero
+' ----------------------------------------------------------------------------
+== 6. Excepción: caída simultánea de ambos canales (RNF-004) ==
+break 5a · Caen a la vez la mensajería y el correo corporativo
+  Ctrl -> Alerta ++ : registrarResultadoDespacho(canal = "FALLO_SIMULTANEO_EXTERNO", exitoso = falso, protocoloTLS = "N/A")
+  Alerta --> Ctrl -- : ENTREGA_FALLIDA
+  note right of Alerta
+    Persistencia íntegra al 100%: ID único, fecha, categoría,
+    destinatarios y estado ENTREGA_FALLIDA (visible en la vista única)
+  end note
+  note over Ctrl, Alerta : FIN excepcional: queda guardada para reintento y consulta en el tablero
 end
 
-CtrlAlert --> AlertBound : confirmacionEmisionCompletada(identificadorUnicoAlerta)
-deactivate CtrlAlert
-AlertBound --> Cron : notificarCicloAlertasFinalizado()
-deactivate AlertBound
+deactivate Ctrl
+note over Sync, Ctrl : Fin del proceso asíncrono: no hay respuesta hacia CU-01
 @enduml
