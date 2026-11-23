@@ -3,6 +3,8 @@
 - **Proyecto:** Sistema de Trazabilidad TI — Reto 2 (COAC Padre Julián Lorente)
 - **Asignatura y Docente:** Arquitectura de Software (`DSOF_4069` — UTPL) · Mgtr. Wayner Xavier Bustamante Granda
 - **Fecha de Defensa:** Lunes 23/12/2025
+- **Presentación en Google Slides (16 Diapositivas con Notas del Orador):** https://docs.google.com/presentation/d/1XhC_nUP-Cw_9Y_JT10V-KC8nJarB7jXlBdomDe8beUM/edit
+- **Respaldo Local PowerPoint (`.pptx`):** [`docs/entregables/Presentacion_Defensa_DAS_COAC_Padre_Julian_Lorente.pptx`](Presentacion_Defensa_DAS_COAC_Padre_Julian_Lorente.pptx)
 - **Equipo Expositor (3 Integrantes):**
   1. **Carlos Valladares** *(Líder Técnico — Arquitectura Empresarial TOGAF, Vista de Escenarios `+1`, Vista de Desarrollo y Vista Física)*
   2. **Alex Daniel Gutiérrez Córdova** *(Arquitecto de Dominio — Vista Lógica: Diagrama de Clases, Estados y Diseño Detallado)*
