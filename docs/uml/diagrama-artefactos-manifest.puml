@@ -1,0 +1,108 @@
+@startuml diagrama-artefactos-manifest
+!pragma layout smetana
+left to right direction
+skinparam dpi 150
+skinparam roundcorner 8
+skinparam shadowing false
+skinparam defaultFontName SansSerif
+skinparam defaultFontSize 11
+skinparam nodesep 24
+skinparam ranksep 72
+
+<style>
+document {
+  BackgroundColor #FFFFFF
+}
+title {
+  FontName SansSerif
+  FontSize 15
+  FontStyle bold
+  FontColor #1F4E78
+}
+footer {
+  FontName SansSerif
+  FontSize 10
+  FontColor #475569
+}
+package {
+  RoundCorner 10
+  LineThickness 1.6
+  FontStyle bold
+  FontSize 12
+}
+artifact {
+  BackgroundColor #EFF6FF
+  BorderColor #1E40AF
+  FontColor #0F172A
+  FontSize 10
+}
+component {
+  BackgroundColor #F8FAFC
+  BorderColor #334155
+  FontColor #0F172A
+  FontSize 10
+}
+arrow {
+  LineColor #334155
+  LineThickness 1.3
+  FontColor #1E293B
+  FontSize 10
+}
+</style>
+
+title Vista Física — Manifestación de Componentes en Artefactos Físicos (UML 2.5.1)\nCadena de Trazabilidad: Paquetes / Componentes (Vista de Desarrollo) ← «manifest» — Artefactos Desplegables
+
+package "Artefactos Físicos Instalables y Configuración" as P_ART #F0F9FF {
+  artifact "trazabilidad-web\n(Bundle HTML5/CSS3/JS\nReact 19 / Next.js 15)" <<artifact>> as A_Web
+  artifact "trazabilidad-api\n(Imagen OCI Backend\nNestJS 11 · Consultivo)" <<artifact>> as A_Api
+  artifact "trazabilidad-etl-worker\n(Imagen OCI Worker\nNestJS 11 + BullMQ · ETL/Alertas)" <<artifact>> as A_Wkr
+  artifact "config-produccion\n(Variables Cifradas, TLS,\nTimeout 10 s, Pool BD)" <<deployment spec>> as A_Cfg #FEF3C7
+  artifact "esquema-trazabilidad\n(Scripts SQL DDL, Índices,\nTablas Append-Only 12–24 m)" <<artifact>> as A_SQL
+  artifact "colas-bullmq-snapshot\n(Configuración Colas,\nCRON 5 min y Snapshots)" <<artifact>> as A_Q
+}
+
+package "Componentes Lógicos Manifestados (Vista de Desarrollo)" as P_COMP #F0FDF4 {
+  component "WebAppTableroUnico\n(CU-03..CU-08)" <<component>> as C_Web #DBEAFE
+  component "ModuloPlanificacionPOA" <<component>> as C_Plan #E0F2FE
+  component "ModuloEjecucionTecnica" <<component>> as C_Ejec #DCFCE7
+  component "ModuloTrazabilidadYMetricas\n(CU-01 · CU-06)" <<component>> as C_Traz #FEF3C7
+  component "ModuloAlertasYGobiernoPMO\n(CU-02..CU-08)" <<component>> as C_Gov #EDE9FE
+  component "CapaPersistenciaYAuditoria\n(Prisma 6 · SHA-256)" <<component>> as C_Pers #E2E8F0
+  component "ComponenteSeguridadYLOPDP\n(Auth TLS 1.3 · 100% PII)" <<component>> as C_Seg #E2E8F0
+  component "MotorExportacionEjecutiva\n(PDF / XLSX · CU-08)" <<component>> as C_Rep #E2E8F0
+  component "AdaptadoresIngestaETL\n(Redmine · GLPI · GitLab · Sonar)" <<component>> as C_Ext #E2E8F0
+  component "AdaptadoresNotificacionTLS\n(Mensajería + Correo TLS ≥ 1.2)" <<component>> as C_Not #E2E8F0
+  component "BusEventosYPushIncremental\n(Eventos CU-01→CU-02 · Push < 1 s)" <<component>> as C_Bus #E2E8F0
+  component "ModeloDatosConsolidado\n(16 Entidades · RNF-009)" <<component>> as C_DB #FFEDD5
+}
+
+' === RELACIONES «manifest» (UML 2.5.1: Artefacto ..> Componente) ===
+A_Web ..> C_Web : <<manifest>>
+
+A_Api ..> C_Plan : <<manifest>>
+A_Api ..> C_Ejec : <<manifest>>
+A_Api ..> C_Traz : <<manifest>>
+A_Api ..> C_Gov  : <<manifest>>
+A_Api ..> C_Pers : <<manifest>>
+A_Api ..> C_Seg  : <<manifest>>
+A_Api ..> C_Rep  : <<manifest>>
+A_Api ..> C_Bus  : <<manifest>>
+
+A_Wkr ..> C_Plan : <<manifest>>
+A_Wkr ..> C_Ejec : <<manifest>>
+A_Wkr ..> C_Traz : <<manifest>>
+A_Wkr ..> C_Gov  : <<manifest>>
+A_Wkr ..> C_Ext  : <<manifest>>
+A_Wkr ..> C_Not  : <<manifest>>
+A_Wkr ..> C_Seg  : <<manifest>>
+A_Wkr ..> C_Pers : <<manifest>>
+
+A_SQL ..> C_DB   : <<manifest>>
+A_Q   ..> C_Bus  : <<manifest>>
+
+' === PARAMETRIZACIÓN POR «deployment spec» ===
+A_Cfg ..> A_Api  : <<parametriza>>
+A_Cfg ..> A_Wkr  : <<parametriza>>
+
+footer Estándar UML 2.5.1: los componentes lógicos se empaquetan mediante «manifest» en artefactos físicos, los cuales se alojan en nodos mediante «deploy»
+@enduml

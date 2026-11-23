@@ -1,0 +1,96 @@
+@startuml diagrama-despliegue-desarrollo
+!pragma layout smetana
+top to bottom direction
+skinparam dpi 150
+skinparam roundcorner 8
+skinparam shadowing false
+skinparam defaultFontName SansSerif
+skinparam defaultFontSize 11
+skinparam nodesep 36
+skinparam ranksep 58
+
+<style>
+document {
+  BackgroundColor #FFFFFF
+}
+title {
+  FontName SansSerif
+  FontSize 15
+  FontStyle bold
+  FontColor #1F4E78
+}
+footer {
+  FontName SansSerif
+  FontSize 10
+  FontColor #475569
+}
+rectangle {
+  RoundCorner 10
+  LineThickness 1.8
+  FontStyle bold
+  FontSize 12
+}
+node {
+  RoundCorner 6
+  LineThickness 1.4
+  FontColor #0F172A
+  FontSize 11
+}
+artifact {
+  BackgroundColor #FFFFFF
+  BorderColor #1E40AF
+  FontColor #0F172A
+  FontSize 10
+}
+arrow {
+  LineColor #334155
+  LineThickness 1.4
+  FontColor #0F172A
+  FontSize 10
+}
+</style>
+
+title Vista Física — Diagrama de Despliegue Simplificado en Desarrollo Local (UML 2.5.1)\nMismos Artefactos sin Modificar Código Fuente (Flexibilidad de Asignación · Docker Compose)
+
+rectangle "ENTORNO DE DESARROLLO LOCAL (1 ÚNICO EQUIPO POR INTEGRANTE)" as Z_DEV #F0F9FF {
+  node "Estación del Desarrollador\n(Carlos Valladares / Alex Gutiérrez / Luis Carrión)" <<device>> as N_DevPC #E0F2FE {
+
+    node "Navegador Local" <<executionEnvironment>> as E_DevWeb #F8FAFC {
+      artifact "trazabilidad-web\n(Dev Server Next.js 15)" <<artifact>> as A_DevWeb
+    }
+
+    node "Docker Compose — Contenedor Backend API\n(Node.js 22 LTS)" <<executionEnvironment>> as E_DevApi #DCFCE7 {
+      artifact "trazabilidad-api\n(Mismo artefacto que Prod)" <<artifact>> as A_DevApi
+      artifact "config-dev\n(Variables locales y mocks)" <<deployment spec>> as S_DevApi
+    }
+
+    node "Docker Compose — Contenedor Worker ETL\n(Node.js 22 LTS)" <<executionEnvironment>> as E_DevWkr #FEF3C7 {
+      artifact "trazabilidad-etl-worker\n(Mismo artefacto que Prod)" <<artifact>> as A_DevWkr
+      artifact "config-dev\n(CRON acelerado y tokens QA)" <<deployment spec>> as S_DevWkr
+    }
+
+    node "Docker Compose — Valkey 8.0 Local" <<executionEnvironment>> as E_DevCache #EDE9FE {
+      artifact "colas-bullmq-snapshot\n(Instancia local)" <<artifact>> as A_DevCache
+    }
+
+    node "Docker Compose — PostgreSQL 16 Local" <<executionEnvironment>> as E_DevDB #FEE2E2 {
+      artifact "esquema-trazabilidad\n(Migraciones Prisma + Seed)" <<artifact>> as A_DevDB
+    }
+  }
+}
+
+rectangle "ENTORNO DE PRUEBAS / SANDBOX EXTERNO" as Z_MOCK #FFF7ED {
+  node "Instancias QA / Mocks Controlados\n(Redmine · GLPI · GitLab · SonarQube · Mailhog)" <<device>> as N_Mock #FFEDD5 {
+    node "Servicios Simulados / QA" <<executionEnvironment>> as E_Mock #F8FAFC
+  }
+}
+
+E_DevWeb -- E_DevApi : HTTP localhost (:3000)
+E_DevApi -- E_DevDB : TCP/IP localhost (:5432)
+E_DevApi -- E_DevCache : RESP localhost (:6379)
+E_DevWkr -- E_DevDB : TCP/IP localhost (:5432)
+E_DevWkr -- E_DevCache : RESP localhost (:6379)
+E_DevWkr -- N_Mock : HTTPS / SMTP Sandbox\n(Solo Lectura / Pruebas)
+
+footer Demostración de portabilidad: los 4 artefactos instalables cambian únicamente su «deployment spec» (config-dev → config-produccion) sin alterar el código
+@enduml

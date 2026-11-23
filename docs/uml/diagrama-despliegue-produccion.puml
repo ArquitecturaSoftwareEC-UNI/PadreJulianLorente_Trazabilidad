@@ -1,0 +1,152 @@
+@startuml diagrama-despliegue-produccion
+!pragma layout smetana
+top to bottom direction
+skinparam dpi 150
+skinparam roundcorner 8
+skinparam shadowing false
+skinparam defaultFontName SansSerif
+skinparam defaultFontSize 11
+skinparam nodesep 38
+skinparam ranksep 68
+
+<style>
+document {
+  BackgroundColor #FFFFFF
+}
+title {
+  FontName SansSerif
+  FontSize 15
+  FontStyle bold
+  FontColor #1F4E78
+}
+footer {
+  FontName SansSerif
+  FontSize 10
+  FontColor #475569
+}
+rectangle {
+  RoundCorner 10
+  LineThickness 1.8
+  FontStyle bold
+  FontSize 12
+}
+node {
+  RoundCorner 6
+  LineThickness 1.4
+  FontColor #0F172A
+  FontSize 11
+}
+artifact {
+  BackgroundColor #FFFFFF
+  BorderColor #1E40AF
+  FontColor #0F172A
+  FontSize 10
+}
+arrow {
+  LineColor #334155
+  LineThickness 1.4
+  FontColor #0F172A
+  FontSize 10
+}
+</style>
+
+title Vista Física — Diagrama de Despliegue en Producción (UML 2.5.1)\nSistema de Trazabilidad TI — COAC Padre Julián Lorente (3 Zonas de Red · Contenedores OCI · Mitigación SPOF)
+
+' ============================================================================
+' ZONA 1 — RED DE ACCESO DIRECTIVO / EXTERNA
+' ============================================================================
+rectangle "ZONA 1 — ACCESO DIRECTIVO (RED CORPORATIVA / EXTERNA · HTTPS TLS 1.3)" as Z_EXT #EFF6FF {
+  node "Estación / Dispositivo Directivo\n(Jefe de Desarrollo / PMO · 1..25 sesiones)" <<device>> as N_Client #DBEAFE {
+    node "Navegador Web Estándar\n(1920x1080 · 768x1024 · 360x640)" <<executionEnvironment>> as E_Browser #F8FAFC {
+      artifact "trazabilidad-web\n(Bundle React 19 / Next.js 15)" <<artifact>> as A_Web
+    }
+  }
+}
+
+' ============================================================================
+' ZONA 2 — RED INTERNA PRIVADA COAC (INTRANET AISLADA · SIN ACCESO PÚBLICO DIRECTO)
+' ============================================================================
+rectangle "ZONA 2 — RED INTERNA PRIVADA COAC (VLAN PROTEGIDA · LOPDP 2021 · 0 EXPOSICIÓN DIRECTA A BD)" as Z_INT #F0FDF4 {
+
+  node "Servidor Web / Proxy Inverso\n(Par HA Activo-Pasivo · VIP)" <<device>> as N_Proxy #DCFCE7 {
+    node "Nginx 1.26 LTS\n(Terminación HTTPS TLS 1.3)" <<executionEnvironment>> as E_Nginx #F8FAFC {
+      artifact "config-proxy-tls13\n(Certificados TLS 1.3 y Ruteo)" <<deployment spec>> as S_Proxy
+    }
+  }
+
+  node "Servidor de Aplicaciones Web\n(2 instancias activas · Stateless)" <<device>> as N_App #E0F2FE {
+    node "Docker Engine 27 / Node.js 22 LTS\n(Contenedor OCI Consultivo)" <<executionEnvironment>> as E_App #F8FAFC {
+      artifact "trazabilidad-api\n(Imagen OCI NestJS 11 · CU-03..08)" <<artifact>> as A_Api
+      artifact "config-produccion\n(Pool BD, OIDC, TLS, Límites)" <<deployment spec>> as S_ProdApi
+    }
+  }
+
+  node "Servidor Worker ETL y Alertas\n(Instancia Activa + Standby)" <<device>> as N_Worker #FEF3C7 {
+    node "Docker Engine 27 / Node.js 22 LTS\n(Contenedor OCI ETL y Alertas)" <<executionEnvironment>> as E_Worker #F8FAFC {
+      artifact "trazabilidad-etl-worker\n(Imagen OCI NestJS 11 + BullMQ · CU-01/02)" <<artifact>> as A_Worker
+      artifact "config-produccion\n(CRON 5 min, Timeout 10 s, Tokens Solo Lectura)" <<deployment spec>> as S_ProdWkr
+    }
+  }
+
+  node "Servidor de Colas y Caché\n(In-Memory + Persistencia AOF)" <<device>> as N_Cache #EDE9FE {
+    node "Docker Engine 27 / Valkey 8.0\n(Broker BullMQ y Caché Lectura)" <<executionEnvironment>> as E_Valkey #F8FAFC {
+      artifact "colas-bullmq-snapshot\n(Colas CU-02, Push <1s y Snapshots)" <<artifact>> as A_Cache
+    }
+  }
+
+  node "Servidor de Base de Datos Primario\n(SPOF Mitigado con Réplica)" <<device>> as N_DB1 #FEE2E2 {
+    node "RDBMS PostgreSQL 16\n(Cifrado en Reposo LOPDP)" <<executionEnvironment>> as E_PG1 #F8FAFC {
+      artifact "esquema-trazabilidad\n(DDL Consolidado + Bitácora 12–24 m)" <<artifact>> as A_DB1
+    }
+  }
+
+  node "Servidor de Base de Datos Réplica\n(Hot Standby · Failover + PITR)" <<device>> as N_DB2 #FFEDD5 {
+    node "RDBMS PostgreSQL 16\n(Réplica Síncrona / Semisíncrona)" <<executionEnvironment>> as E_PG2 #F8FAFC {
+      artifact "esquema-trazabilidad-replica\n(Respaldo Continuo 24 meses)" <<artifact>> as A_DB2
+    }
+  }
+}
+
+' ============================================================================
+' ZONA 3 — PLATAFORMAS EXTERNAS Y SERVICIOS INSTITUCIONALES
+' ============================================================================
+rectangle "ZONA 3 — SERVICIOS INSTITUCIONALES Y PLATAFORMAS EXTERNAS" as Z_TERC #FFF7ED {
+  node "Plataformas Origen TI\n(Redmine · GLPI · GitLab · SonarQube)" <<device>> as N_ExtTI #FFEDD5 {
+    node "APIs REST de Origen\n(Cuentas Estrictas Solo Lectura)" <<executionEnvironment>> as E_ExtTI #F8FAFC
+  }
+
+  node "Directorio de Identidad COAC\n(IdP Institucional)" <<device>> as N_IdP #FFEDD5 {
+    node "Servicio LDAP / OIDC" <<executionEnvironment>> as E_IdP #F8FAFC
+  }
+
+  node "Canal de Mensajería\nCorporativo" <<device>> as N_Chat #FFEDD5 {
+    node "Pasarela de Mensajería\n(Primario CU-02)" <<executionEnvironment>> as E_Chat #F8FAFC
+  }
+
+  node "Servicio de Correo\nCorporativo" <<device>> as N_Mail #FFEDD5 {
+    node "Pasarela MTA / TLS\n(Escalamiento y Conmutación 4a)" <<executionEnvironment>> as E_Mail #F8FAFC
+  }
+}
+
+' ============================================================================
+' RUTAS DE COMUNICACIÓN (PROTOCOLO Y PUERTO OBLIGATORIOS EN CADA LÍNEA)
+' ============================================================================
+N_Client -- N_Proxy : HTTPS TLS 1.3 (:443)\n[Cifrado 100% · RNF-013]
+
+N_Proxy -- N_App : HTTP/2 Interno (:3000)\n[Balanceo + Push < 1 s]
+
+N_App -- N_DB1 : TCP/IP TLS (:5432)\n[Lectura ≤ 2 s / ≤ 400 ms p95]
+N_App -- N_Cache : RESP/TLS (:6379)\n[Índices Caché y Suscripción Push]
+N_App -- N_IdP : LDAPS / HTTPS TLS 1.3 (:636/:443)\n[Autenticación CU-03]
+
+N_Worker -- N_DB1 : TCP/IP TLS (:5432)\n[Carga Atómica Idempotente RNF-009]
+N_Worker -- N_Cache : RESP/TLS (:6379)\n[CRON 5 min · Colas CU-02 · Snapshots]
+
+N_DB1 -- N_DB2 : Streaming Replication TCP/TLS (:5432)\n[Mitigación SPOF + Backups PITR]
+
+N_Worker -- N_ExtTI : HTTPS Solo Lectura (:443)\n[Timeout ≤ 10 s · 3 Reintentos · RNF-003/008]
+N_Worker -- N_Chat : HTTPS TLS ≥ 1.2 (:443)\n[Despacho Asíncrono Primario · RF-024]
+N_Worker -- N_Mail : SMTP / TLS ≥ 1.2 (:587)\n[Escalamiento y Conmutación 4a · RF-025]
+
+footer Topología de Producción UML 2.5.1 · Anidamiento «device» → «executionEnvironment» → «artifact» / «deployment spec» · Soberanía de Datos On-Premise COAC (LOPDP 2021)
+@enduml
