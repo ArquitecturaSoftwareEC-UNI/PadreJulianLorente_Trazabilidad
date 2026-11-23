@@ -1,0 +1,254 @@
+@startuml diagrama-paquetes-desarrollo
+!pragma layout smetana
+top to bottom direction
+skinparam dpi 150
+skinparam roundcorner 10
+skinparam shadowing false
+skinparam defaultFontName SansSerif
+skinparam defaultFontSize 11
+skinparam nodesep 24
+skinparam ranksep 34
+
+<style>
+document {
+  BackgroundColor #FFFFFF
+}
+title {
+  FontName SansSerif
+  FontSize 15
+  FontStyle bold
+  FontColor #1F4E78
+}
+footer {
+  FontName SansSerif
+  FontSize 10
+  FontColor #475569
+}
+package {
+  LineThickness 1.6
+  RoundCorner 10
+  FontStyle bold
+  FontSize 12
+}
+card {
+  RoundCorner 8
+  LineThickness 1.3
+  FontColor #0F172A
+  FontSize 10
+}
+arrow {
+  LineColor #334155
+  LineThickness 1.3
+  FontColor #1E293B
+  FontSize 10
+}
+</style>
+
+title Vista de Desarrollo (Semana 6) — Diagrama de Paquetes UML 2.5.1 (3 Capas Acíclicas)\nSistema de Trazabilidad TI — COAC Padre Julián Lorente («Domain» → «Utility» → «Platform»)
+
+' ============================================================================
+' CAPA 1: DOMINIOS («Domain») — Núcleo puro del negocio (Cero SQL, Cero UI)
+' Orden topológico acíclico (DAG):
+'   AlertasYGobiernoPMO -> TrazabilidadYMetricas -> EjecucionTecnica -> PlanificacionPOA
+' ============================================================================
+package "CAPA 1 — «Domain» (Núcleo del Negocio · 16 Entidades + 5 Controladores ECB · Sin ciclos)" as L_DOM #F0F9FF {
+
+  package "«Domain»\nPlanificacionPOA" as D_Plan #E0F2FE {
+    card C_Plan [
+      <b>Entidades (Sem. 4):</b>
+      ModuloFinanciero · ProyectoPOA
+      HistoriaSpec · TareaIssue
+      <i>Enums: ModuloCore, EtapaOficial,</i>
+      <i>NivelComplejidad, TipoEspecificacion</i>
+    ]
+  }
+
+  package "«Domain»\nEjecucionTecnica" as D_Ejec #DCFCE7 {
+    card C_Ejec [
+      <b>Entidades (Sem. 4):</b>
+      Desarrollador · ActividadCodigo
+      IncidenteSoporte · ReporteCalidad
+      <i>Enums: NivelSemaforo, TipoCommit</i>
+      <i>Reglas: Carga 40 h, GLPI 4h/8h, QA 2h</i>
+    ]
+  }
+
+  package "«Domain»\nTrazabilidadYMetricas" as D_Traz #FEF3C7 {
+    card C_Traz [
+      <b>Entidades (Sem. 4):</b>
+      ExpedienteTrazabilidad · HitoEtapa
+      RetornoFallo · IndicadorDesempeno
+      <b>Controladores ECB (Sem. 5):</b>
+      ControladorSincronizacion (CU-01)
+      ControladorAuditoriaCausaRaiz (CU-06)
+    ]
+  }
+
+  package "«Domain»\nAlertasYGobiernoPMO" as D_Gov #EDE9FE {
+    card C_Gov [
+      <b>Entidades (Sem. 4):</b>
+      AlertaOperativa · DespachoNotificacion
+      UsuarioGestion · ReporteTrimestral
+      <b>Controladores ECB (Sem. 5):</b>
+      ControladorEmisionAlertas (CU-02)
+      ControladorConsultaTablero (CU-04)
+      ControladorFiltradoTablero (CU-05)
+    ]
+  }
+}
+
+' ============================================================================
+' CAPA 2: UTILITARIOS («Utility») — Servicios transversales (Prueba de las 3 Preguntas)
+' ============================================================================
+package "CAPA 2 — «Utility» (Plomería Transversal Genérica · Nunca importa «Domain»)" as L_UTIL #F8FAFC {
+  package "«Utility»\nSeguridad" as U_Seg #E2E8F0 {
+    card C_USeg [
+      Auth institucional (TLS 1.3)
+      Enmascaramiento genérico PII
+      Gestión de secretos solo lectura
+    ]
+  }
+
+  package "«Utility»\nPersistencia" as U_Pers #E2E8F0 {
+    card C_UPers [
+      Repositorios y transacciones
+      Idempotencia / rollback atómico
+      Índices y caché de lectura
+    ]
+  }
+
+  package "«Utility»\nAuditoria" as U_Aud #E2E8F0 {
+    card C_UAud [
+      Bitácora inmutable append-only
+      Sellado de huella SHA-256
+      Política de retención 12–24 m
+    ]
+  }
+
+  package "«Utility»\nIntegracionExterna" as U_Int #E2E8F0 {
+    card C_UInt [
+      Adaptadores solo lectura (RNF-016)
+      Timeout ≤ 10 s y 3 reintentos
+      Snapshot parcial y CRON 5 min
+    ]
+  }
+
+  package "«Utility»\nNotificaciones" as U_Not #E2E8F0 {
+    card C_UNot [
+      Bus de eventos asíncronos
+      Pasarela TLS ≥ 1.2 + conmutación
+      Push incremental (< 1 s)
+    ]
+  }
+
+  package "«Utility»\nValidaciones" as U_Val #E2E8F0 {
+    card C_UVal [
+      Rangos de fechas y formatos
+      Normalización tolerante regex
+      Validación genérica de entrada
+    ]
+  }
+
+  package "«Utility»\nReportes" as U_Rep #E2E8F0 {
+    card C_URep [
+      Motor técnico de exportación
+      Plantillas ejecutivas PDF / XLSX
+      Serialización tabular genérica
+    ]
+  }
+}
+
+' ============================================================================
+' CAPA 3: PLATAFORMAS («Platform») — Tecnología base adoptada (6 Niveles)
+' ============================================================================
+package "CAPA 3 — «Platform» (Tecnología Base de Terceros · Base absoluta · Aislada de «Domain»)" as L_PLAT #FFF7ED {
+  package "«Platform»\nPlataformasOrigenTI" as P_Orig #FFEDD5 {
+    card C_POrig [
+      <b>Nivel 1 (Servicios Externos):</b>
+      Redmine v5 · GLPI v10
+      GitLab v17 · SonarQube v10 LTS
+    ]
+  }
+
+  package "«Platform»\nCanalesEIdentidad" as P_Can #FFEDD5 {
+    card C_PCan [
+      <b>Nivel 1 (Servicios Externos):</b>
+      Canal de Mensajería Corporativo
+      Servicio de Correo Corporativo (TLS)
+      IdP Institucional (LDAP / OIDC)
+    ]
+  }
+
+  package "«Platform»\nDatosYColas" as P_Dat #FFEDD5 {
+    card C_PDat [
+      <b>Nivel 2 (Infraestructura):</b>
+      PostgreSQL 16 (BD Consolidada)
+      Redis 7.4 / Valkey 8 (Colas y Caché)
+      Nginx 1.26 (Proxy HTTPS TLS 1.3)
+    ]
+  }
+
+  package "«Platform»\nFrameworksYRuntime" as P_Frm #FFEDD5 {
+    card C_PFrm [
+      <b>Niveles 3–6 (Base Tecnológica):</b>
+      NestJS 11 · Prisma 6 · BullMQ 5 · React 19
+      TypeScript 5.7 / Node.js 22 LTS
+      Ubuntu 24.04 LTS · Docker 27 · On-Premise COAC
+    ]
+  }
+}
+
+' ============================================================================
+' DEPENDENCIAS ACÍCLICAS LATERALES DENTRO DE «Domain» (DAG ESTRICTO)
+' ============================================================================
+D_Ejec ..> D_Plan : <<use>>
+D_Traz ..> D_Plan : <<use>>
+D_Traz ..> D_Ejec : <<use>>
+D_Gov  ..> D_Plan : <<use>>
+D_Gov  ..> D_Ejec : <<use>>
+D_Gov  ..> D_Traz : <<use>>
+
+' ============================================================================
+' DEPENDENCIAS GRAVITACIONALES DESCENDENTES: «Domain» -> «Utility»
+' (CERO flechas directas de «Domain» hacia «Platform»)
+' ============================================================================
+D_Plan ..> U_Pers
+D_Plan ..> U_Val
+
+D_Ejec ..> U_Pers
+D_Ejec ..> U_Int
+D_Ejec ..> U_Val
+
+D_Traz ..> U_Seg
+D_Traz ..> U_Pers
+D_Traz ..> U_Aud
+D_Traz ..> U_Int
+D_Traz ..> U_Not : <<publish event>>
+D_Traz ..> U_Rep
+
+D_Gov  ..> U_Seg
+D_Gov  ..> U_Pers
+D_Gov  ..> U_Aud
+D_Gov  ..> U_Not : <<subscribe / dispatch>>
+D_Gov  ..> U_Val
+D_Gov  ..> U_Rep
+
+' ============================================================================
+' DEPENDENCIAS GRAVITACIONALES DESCENDENTES: «Utility» -> «Platform»
+' ============================================================================
+U_Seg  ..> P_Can
+U_Seg  ..> P_Dat
+U_Pers ..> P_Dat
+U_Pers ..> P_Frm
+U_Aud  ..> P_Dat
+U_Int  ..> P_Orig
+U_Int  ..> P_Dat
+U_Int  ..> P_Frm
+U_Not  ..> P_Can
+U_Not  ..> P_Dat
+U_Not  ..> P_Frm
+U_Val  ..> P_Frm
+U_Rep  ..> P_Frm
+
+footer Principio Gravitacional y Aislamiento (Guía Maestra Sem. 6): 0 ciclos · 0 flechas ascendentes · 0 acoplamiento directo Domain -> Platform
+@enduml

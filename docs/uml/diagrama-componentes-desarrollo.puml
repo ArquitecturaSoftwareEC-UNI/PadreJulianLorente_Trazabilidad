@@ -1,0 +1,143 @@
+@startuml diagrama-componentes-desarrollo
+!pragma layout smetana
+top to bottom direction
+skinparam dpi 150
+skinparam roundcorner 10
+skinparam shadowing false
+skinparam defaultFontName SansSerif
+skinparam defaultFontSize 11
+skinparam nodesep 48
+skinparam ranksep 34
+
+<style>
+document {
+  BackgroundColor #FFFFFF
+}
+title {
+  FontName SansSerif
+  FontSize 15
+  FontStyle bold
+  FontColor #1F4E78
+}
+footer {
+  FontName SansSerif
+  FontSize 10
+  FontColor #475569
+}
+component {
+  RoundCorner 8
+  LineThickness 1.4
+  FontColor #0F172A
+}
+package {
+  LineThickness 1.6
+  RoundCorner 10
+  FontStyle bold
+  FontSize 12
+}
+interface {
+  BackgroundColor #FEF3C7
+  BorderColor #B45309
+}
+arrow {
+  LineColor #334155
+  LineThickness 1.25
+  FontColor #1E293B
+  FontSize 10
+}
+</style>
+
+title Vista de Desarrollo (Semana 6) — Diagrama de Componentes e Interfaces UML 2.5.1\nArquitectura Monolito Modular Desacoplado por Adaptadores (RNF-016) — COAC Padre Julián Lorente
+
+' ============================================================================
+' FRONTERA DE PRESENTACIÓN (CLIENTE WEB ÚNICO SOLO LECTURA)
+' ============================================================================
+package "Cliente Web Único (React 19 / Next.js 15 · HTTPS TLS 1.3)" as P_Web #EFF6FF {
+  component "WebAppTableroUnico\n(CU-03..CU-08 · Solo Lectura)\n1920x1080 · 768x1024 · 360x640" as WebUI #DBEAFE
+}
+
+interface "IAPI_ConsultaYAlertas\n(HTTPS TLS 1.3)" as I_Web
+
+' ============================================================================
+' MONOLITO MODULAR BACKEND (NestJS 11 / TypeScript 5.7)
+' ============================================================================
+package "Monolito Modular — Sistema de Trazabilidad TI (NestJS 11 / Node.js 22 LTS)" as P_Back #F8FAFC {
+
+  package "Módulos de Dominio («Domain»)" as P_DomMod #F0F9FF {
+    component "ModuloPlanificacionPOA\n(ModuloFinanciero, ProyectoPOA,\nHistoriaSpec, TareaIssue)" as Comp_Plan #E0F2FE
+    component "ModuloEjecucionTecnica\n(Desarrollador, ActividadCodigo,\nIncidenteSoporte, ReporteCalidad)" as Comp_Ejec #DCFCE7
+    component "ModuloTrazabilidadYMetricas\n(Orquestador CU-01 · Auditoría CU-06\nExpediente, Hito, Retorno, Indicador)" as Comp_Traz #FEF3C7
+    component "ModuloAlertasYGobiernoPMO\n(Motor CU-02 · Tablero CU-04 · Filtros CU-05\nAcceso CU-03 · Gestión CU-07 · Reporte CU-08)" as Comp_Gov #EDE9FE
+  }
+
+  interface "IExtractor\nSoloLectura" as I_Ext
+  interface "IBusEventos\nDominio" as I_Bus
+  interface "IPasarela\nNotificaciones" as I_Not
+  interface "IRepositorio\nConsolidado" as I_Repo
+  interface "IServicio\nPrivacidad" as I_Seg
+  interface "IGenerador\nReportes" as I_Rep
+
+  package "Componentes Utilitarios y Adaptadores («Utility»)" as P_UtilMod #F1F5F9 {
+    component "AdaptadoresIngestaETL\n(Redmine · GLPI · GitLab · SonarQube\nTimeout 10 s · 3 Reintentos · Snapshot · CRON)" as Comp_Int #E2E8F0
+    component "BusEventosYPushIncremental\n(Cola Asíncrona + Refresco < 1 s)" as Comp_Bus #E2E8F0
+    component "AdaptadoresNotificacionTLS\n(Mensajería Corporativa + Correo\nConmutación Automática · TLS ≥ 1.2)" as Comp_Not #E2E8F0
+    component "CapaPersistenciaYAuditoria\n(Prisma 6 · Transacciones · Índices\nRastro SHA-256 12–24 meses)" as Comp_Pers #E2E8F0
+    component "ComponenteSeguridadYLOPDP\n(Auth Institucional · Filtro 100% PII)" as Comp_Seg #E2E8F0
+    component "MotorExportacionEjecutiva\n(Renderizado PDF / XLSX)" as Comp_Rep #E2E8F0
+  }
+}
+
+' ============================================================================
+' PLATAFORMAS EXTERNAS E INFRAESTRUCTURA («Platform»)
+' ============================================================================
+package "Infraestructura y Servicios Externos («Platform»)" as P_Infra #FFF7ED {
+  database "PostgreSQL 16\n(Almacenamiento Consolidado\n+ Bitácora Inmutable)" as DB #FFEDD5
+  database "Redis 7.4 / Valkey 8\n(Colas Asíncronas,\nCRON y Caché)" as Cache #FFEDD5
+  component "Plataformas Origen TI\n(Redmine · GLPI ·\nGitLab · SonarQube)" as ExtTI #FFEDD5
+  component "Canales Corporativos\n(Mensajería Corporativa ·\nCorreo Corporativo · IdP)" as ExtCan #FFEDD5
+}
+
+' ============================================================================
+' CONEXIONES POR INTERFACES (INVERSIÓN DE DEPENDENCIAS — 0 CICLOS)
+' ============================================================================
+WebUI ..> I_Web : consume
+I_Web -- Comp_Gov
+
+Comp_Gov ..> Comp_Traz : lee expedientes
+Comp_Gov ..> Comp_Ejec : lee capacidad 40 h
+Comp_Gov ..> Comp_Plan : lee jerarquía POA
+Comp_Traz ..> Comp_Ejec : correlaciona
+Comp_Traz ..> Comp_Plan : clasifica 4 niveles
+Comp_Ejec ..> Comp_Plan : enlaza TareaIssue
+
+Comp_Traz ..> I_Ext : requiere
+I_Ext -- Comp_Int : implementa
+
+Comp_Traz ..> I_Bus : publica evento CU-01
+I_Bus -- Comp_Bus : implementa
+Comp_Gov ..> I_Bus : suscribe CU-02 / CU-04
+
+Comp_Gov ..> I_Not : requiere
+I_Not -- Comp_Not : implementa
+
+Comp_Traz ..> I_Repo : persiste atómico
+Comp_Gov ..> I_Repo : consulta / audita
+I_Repo -- Comp_Pers : implementa
+
+Comp_Traz ..> I_Seg : verifica 100% PII
+Comp_Gov ..> I_Seg : autentica CU-03
+I_Seg -- Comp_Seg : implementa
+
+Comp_Gov ..> I_Rep : exporta CU-08
+I_Rep -- Comp_Rep : implementa
+
+Comp_Int ..> ExtTI : solo lectura (RNF-003)
+Comp_Int ..> Cache : CRON 5 min / snapshot
+Comp_Bus ..> Cache : colas y push < 1 s
+Comp_Not ..> ExtCan : cifrado ≥ TLS 1.2
+Comp_Seg ..> ExtCan : valida identidad IdP
+Comp_Pers ..> DB : SQL transaccional
+Comp_Pers ..> Cache : índices lectura ≤ 400 ms
+
+footer Desacoplamiento por puertos e interfaces (RNF-016): cambiar un proveedor externo o motor BD implica 0 modificaciones en los 4 módulos de Dominio
+@enduml
