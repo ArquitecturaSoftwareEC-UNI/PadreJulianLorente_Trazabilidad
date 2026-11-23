@@ -1,4 +1,4 @@
-# Vista de Procesos (Semana 5) — Análisis ECB, Concurrencia y Diagramas de Secuencia UML 2.5.1
+# Vista de Procesos — Análisis ECB, Concurrencia y Diagramas de Secuencia UML 2.5.1
 
 **Proyecto:** Sistema de Trazabilidad TI — Reto 2 (COAC Padre Julián Lorente)  
 **Asignatura y Marco Normativo:** Arquitectura de Software (`DSOF_4069`) · Modelo Arquitectónico `4+1` de Kruchten (ISO/IEC/IEEE 42010) · UML 2.5.1 · ISO/IEC 25010:2023 · TOGAF ADM  
@@ -12,8 +12,8 @@
 - `CU-06` (Auditar trazabilidad de causa raíz): [secuencia-cu06-auditar-causa-raiz.puml](uml/secuencia-cu06-auditar-causa-raiz.puml) · [secuencia-cu06-auditar-causa-raiz.png](uml/secuencia-cu06-auditar-causa-raiz.png)
 
 **Línea Base Sincronizada 1:1:**
-- **Vista Lógica (Semana 4 — v2 en `main`):** [vista-logica-clases.md](vista-logica-clases.md) · [vista-logica-clases.drawio](uml/vista-logica-clases.drawio) · [diagrama-clases.png](uml/diagrama-clases.png)
-- **Vista de Escenarios +1 (Semana 3):** [especificaciones-casos-de-uso.md](especificaciones-casos-de-uso.md) · [casos-de-uso.puml](uml/casos-de-uso.puml)
+- **Vista Lógica:** [vista-logica-clases.md](vista-logica-clases.md) · [vista-logica-clases.drawio](uml/vista-logica-clases.drawio) · [diagrama-clases.png](uml/diagrama-clases.png)
+- **Vista de Escenarios (+1):** [especificaciones-casos-de-uso.md](especificaciones-casos-de-uso.md) · [casos-de-uso.puml](uml/casos-de-uso.puml)
 - **Requisitos Oficiales:** [Requisitos-padre-julian-lorente.xlsx](Requisitos-padre-julian-lorente.xlsx) (`40 RF` + `18 RNF`) · [historias-usuario-padre-julian-lorente.xlsx](historias-usuario-padre-julian-lorente.xlsx) (`40 HU` / `225 pts Fibonacci`)
 
 ---
@@ -82,7 +82,7 @@ flowchart TD
 
 ### 1.2 Regla de Oro de Distribución y Semántica Síncrona (`->`) vs. Asíncrona (`->>`)
 
-Conforme a la Sección 2.1 de [reglas-vista-logica-y-procesos.md](referencias/reglas-vista-logica-y-procesos.md), ninguna tarea mayor asume compartir proceso o nodo físico con sus interlocutoras:
+Conforme a la Regla de Oro de Distribución (Kruchten / Bass et al.), ninguna tarea mayor asume compartir proceso o nodo físico con sus interlocutoras:
 
 | Interacción en Secuencia | Semántica UML 2.5.1 | Justificación Arquitectónica y Atributo de Calidad |
 |---|:---:|---|

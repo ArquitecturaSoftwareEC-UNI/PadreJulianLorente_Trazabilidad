@@ -47,7 +47,7 @@ arrow {
 }
 </style>
 
-title Vista de Desarrollo (Semana 6) — Diagrama de Componentes e Interfaces UML 2.5.1\nArquitectura Monolito Modular Desacoplado por Adaptadores (RNF-016) — COAC Padre Julián Lorente
+title Vista de Desarrollo — Diagrama de Componentes e Interfaces UML 2.5.1\nArquitectura Monolito Modular Desacoplado por Adaptadores (RNF-016) — COAC Padre Julián Lorente
 
 ' ============================================================================
 ' FRONTERA DE PRESENTACIÓN (CLIENTE WEB ÚNICO SOLO LECTURA)

@@ -31,7 +31,7 @@ arrow {
 }
 </style>
 
-title Vista Lógica (Semana 4) — Diagrama de Estados UML 2.5.1\nCiclos de Vida Críticos derivados de Flujos Alternos y Excepciones (CU-01, CU-02, CU-06 y CU-07)
+title Vista Lógica — Diagrama de Estados UML 2.5.1\nCiclos de Vida Críticos derivados de Flujos Alternos y Excepciones (CU-01, CU-02, CU-06 y CU-07)
 
 ' ============================================================================
 ' MÁQUINA DE ESTADOS 1: ExpedienteTrazabilidad (EstadoSincronizacion · CU-01)

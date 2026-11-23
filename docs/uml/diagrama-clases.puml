@@ -45,7 +45,7 @@ arrow {
 }
 </style>
 
-title Vista Lógica (Semana 4) — Diagrama de Clases del Dominio UML 2.5.1\nSistema de Trazabilidad TI — COAC Padre Julián Lorente (4 Paquetes · 16 Clases · CU-01 a CU-08 · 40 RF · 18 RNF)
+title Vista Lógica — Diagrama de Clases del Dominio UML 2.5.1\nSistema de Trazabilidad TI — COAC Padre Julián Lorente (4 Paquetes · 16 Clases · CU-01 a CU-08 · 40 RF · 18 RNF)
 
 ' ============================================================================
 ' PAQUETE 1 — PLANIFICACIÓN Y JERARQUÍA (POA / PETI · Redmine)
@@ -361,5 +361,5 @@ P1 ..> PE : <<use>>
 P3 ..> PE : <<use>>
 P4 ..> PE : <<use>>
 
-footer Vista Lógica UML 2.5.1 sincronizada 1:1 con docs/vista-logica-clases.md, docs/uml/vista-logica-clases.drawio y Vista de Procesos (Semana 5)
+footer Vista Lógica UML 2.5.1 sincronizada 1:1 con docs/vista-logica-clases.md, docs/uml/vista-logica-clases.drawio y la Vista de Procesos
 @enduml

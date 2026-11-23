@@ -1,30 +1,30 @@
-# Vista de Desarrollo (Semana 6) — Dominios, Utilitarios, Plataformas, Paquetes UML y ADRs
+# Vista de Desarrollo — Dominios, Utilitarios, Plataformas, Paquetes UML y ADRs
 
 **Proyecto:** Sistema de Trazabilidad TI — Reto 2 (COAC Padre Julián Lorente)  
-**Asignatura y Marco Normativo:** Arquitectura de Software (`DSOF_4069` — UTPL) · Modelo Arquitectónico `4+1` de Kruchten (ISO/IEC/IEEE 42010) · UML 2.5.1 · ISO/IEC 25010:2023 · TOGAF ADM  
-**Fuente Metodológica:** [Guia_Maestra_Arquitectura_de_Software_Semanas_1_a_6.pdf](referencias/Guia_Maestra_Arquitectura_de_Software_Semanas_1_a_6.pdf) (Semana 6, págs. 31–35 y Apéndice A — DAS v3.0, pág. 36)
+**Marco Normativo:** Modelo Arquitectónico `4+1` de Kruchten (ISO/IEC/IEEE 42010) · UML 2.5.1 · ISO/IEC 25010:2023 · TOGAF ADM  
+**Equipo de Arquitectura y Desarrollo:** Carlos Valladares *(Líder Técnico)* · Alex Gutiérrez · Luis Carrión  
 
 **Artefactos UML Asociados:**
 - **Diagrama de Paquetes UML 2.5.1 (3 Capas Acíclicas):** [diagrama-paquetes-desarrollo.puml](uml/diagrama-paquetes-desarrollo.puml) · [diagrama-paquetes-desarrollo.png](uml/diagrama-paquetes-desarrollo.png)
 - **Diagrama de Componentes e Interfaces UML 2.5.1:** [diagrama-componentes-desarrollo.puml](uml/diagrama-componentes-desarrollo.puml) · [diagrama-componentes-desarrollo.png](uml/diagrama-componentes-desarrollo.png)
 
-**Trazabilidad Completa con Vistas Previas:**
-- **Vista de Escenarios +1 (Sem. 3):** [especificaciones-casos-de-uso.md](especificaciones-casos-de-uso.md) · [casos-de-uso.puml](uml/casos-de-uso.puml) (`CU-01`..`CU-08`, `40 RF`, `18 RNF`)
-- **Vista Lógica (Sem. 4):** [vista-logica-clases.md](vista-logica-clases.md) · [diagrama-clases.puml](uml/diagrama-clases.puml) · [vista-logica-clases.drawio](uml/vista-logica-clases.drawio) · [diagrama-estados.puml](uml/diagrama-estados.puml) (`16 entidades`, `40 operaciones`, `10 enumeraciones`)
-- **Vista de Procesos (Sem. 5):** [vista-procesos-ecb-secuencia.md](vista-procesos-ecb-secuencia.md) · 6 secuencias UML (`3 procesos`, `5 controladores ECB`, `51/51 invocaciones 1:1`)
+**Trazabilidad Completa con Vistas Arquitectónicas Previas:**
+- **Vista de Escenarios (+1):** [especificaciones-casos-de-uso.md](especificaciones-casos-de-uso.md) · [casos-de-uso.puml](uml/casos-de-uso.puml) (`CU-01`..`CU-08`, `40 RF`, `18 RNF`)
+- **Vista Lógica:** [vista-logica-clases.md](vista-logica-clases.md) · [diagrama-clases.puml](uml/diagrama-clases.puml) · [vista-logica-clases.drawio](uml/vista-logica-clases.drawio) · [diagrama-estados.puml](uml/diagrama-estados.puml) (`16 entidades`, `40 operaciones`, `10 enumeraciones`)
+- **Vista de Procesos:** [vista-procesos-ecb-secuencia.md](vista-procesos-ecb-secuencia.md) · 6 diagramas de secuencia UML (`3 procesos`, `5 controladores ECB`, `51/51 invocaciones 1:1`)
 
 ---
 
 ## 1. Propósito, Tres Reglas de Kruchten y Principio Gravitacional
 
-A diferencia de las Semanas 3, 4 y 5 (enfocadas en el usuario final y los conceptos puros del dominio), la **Vista de Desarrollo** está diseñada para los **programadores, líderes técnicos y gestores de configuración**. Responde con precisión a tres preguntas operativas:
+Mientras la Vista de Escenarios (+1), la Vista Lógica y la Vista de Procesos modelan el comportamiento funcional, el dominio y la concurrencia desde la perspectiva operativa, la **Vista de Desarrollo** está dirigida a los **programadores, líder técnico y gestión de configuración**. Responde a tres preguntas operativas concretas:
 1. **¿Dónde vive cada clase y controlador en el repositorio Git?**
 2. **¿Cómo trabaja en paralelo cada integrante del equipo sin pisar código ajeno ni generar conflictos?**
-3. **¿De qué bibliotecas, motores o servicios externos depende cada componente sin acoplar el negocio?**
+3. **¿De qué bibliotecas, motores o servicios externos depende cada componente sin acoplar las reglas de negocio?**
 
 ### Aplicación de las 3 Reglas de Kruchten y el Ecosistema de 3 Bloques
 1. **Partición:** El sistema se divide en **4 Dominios cohesivos del negocio** (`PlanificacionPOA`, `EjecucionTecnica`, `TrazabilidadYMetricas`, `AlertasYGobiernoPMO`), **7 Utilitarios transversales genéricos** y **4 bloques de Plataformas (6 niveles tecnológicos)**. **Cero paquetes "cajón de sastre"** (`General`, `Común`, `Varios`, `Misceláneo`).
-2. **Agrupamiento:** Las entidades y controladores ECB que cambian por la misma razón de negocio conviven en el mismo paquete de Dominio (trazabilidad directa con los 4 paquetes lógicos de la Semana 4).
+2. **Agrupamiento:** Las entidades y controladores ECB que cambian por la misma razón de negocio conviven en el mismo paquete de Dominio, en correspondencia directa con los 4 paquetes de la Vista Lógica.
 3. **Visibilidad (Principio Gravitacional + Principio de Aislamiento):**
    - Todas las dependencias caen **estrictamente hacia abajo** (`«Domain»` ➔ `«Utility»` ➔ `«Platform»`) o lateralmente dentro de `«Domain»` siguiendo un **Grafo Acíclico Dirigido (DAG)**.
    - **Prohibición absoluta #1 (Sin flechas ascendentes):** Ningún `«Utility»` ni ninguna `«Platform»` puede importar clases de `«Domain»`.
@@ -34,9 +34,9 @@ A diferencia de las Semanas 3, 4 y 5 (enfocadas en el usuario final y los concep
 
 ## 2. Capa 1 — Identificación de Dominios (`«Domain»`) y Ruptura de Ciclos
 
-Derivados metódicamente en los 4 pasos de la Guía Maestra (pág. 32): agrupación de las 16 entidades de Semana 4, suma de casos de uso (`CU-01`..`CU-08`), incorporación de los 5 controladores ECB de Semana 5 y validación con el lenguaje de la COAC Padre Julián Lorente:
+Los dominios se derivan agrupando las 16 entidades fuertemente cohesionadas de la Vista Lógica, los 8 Casos de Uso (`CU-01`..`CU-08`), los 5 controladores ECB de la Vista de Procesos y las fronteras naturales del negocio en la COAC Padre Julián Lorente:
 
-| # | Paquete `«Domain»` | Entidades (Semana 4 — 16/16 cubiertas) | Enumeraciones | Controladores ECB / Casos de Uso (Sem. 3 y 5) | Dependencias Laterales (DAG) | Dependencias hacia `«Utility»` |
+| # | Paquete `«Domain»` | Entidades (Vista Lógica — 16/16 cubiertas) | Enumeraciones | Controladores ECB / Casos de Uso | Dependencias Laterales (DAG) | Dependencias hacia `«Utility»` |
 |---|---|---|---|---|---|---|
 | **1** | **`PlanificacionPOA`** *(Nivel base)* | `ModuloFinanciero`, `ProyectoPOA`, `HistoriaSpec`, `TareaIssue` | `ModuloCoreFinanciero`, `EtapaOficial`, `NivelComplejidad`, `TipoEspecificacion` | Línea base de 4 niveles en `CU-01`, `CU-04`..`CU-06`, `CU-08` | **Ninguna** *(hoja base del DAG)* | `Persistencia`, `Validaciones` |
 | **2** | **`EjecucionTecnica`** | `Desarrollador`, `ActividadCodigo`, `IncidenteSoporte`, `ReporteCalidad` | `NivelSemaforo`, `TipoCommit` | Reglas de carga base `40 h`, `GLPI` `4 h/8 h`, QA cruzado `2 h`, respaldo `>25 %`/`100 %`, trabajo huérfano `RF-021`/`RF-022`, calidad SonarQube `-5 pts` (`CU-01`, `CU-04`..`CU-06`) | `PlanificacionPOA` *(solo enlace `0..1` a `TareaIssue`)* | `Persistencia`, `IntegracionExterna`, `Validaciones` |
@@ -46,13 +46,13 @@ Derivados metódicamente en los 4 pasos de la Guía Maestra (pág. 32): agrupaci
 ### Verificación de Grafo Acíclico Dirigido (DAG) y Ruptura del Ciclo `CU-01` ↔ `CU-02`
 - **Orden topológico estricto:** `AlertasYGobiernoPMO` (Nivel 4) ➔ `TrazabilidadYMetricas` (Nivel 3) ➔ `EjecucionTecnica` (Nivel 2) ➔ `PlanificacionPOA` (Nivel 1).
 - **Riesgo de ciclo detectado y resuelto:** Al finalizar `CU-01`, `ControladorSincronizacion` (en `TrazabilidadYMetricas`) debe activar `CU-02` (`ControladorEmisionAlertas`) y el refresco incremental de `CU-04` (`ControladorConsultaTablero`), ambos residentes en `AlertasYGobiernoPMO`. Si `TrazabilidadYMetricas` importara directamente a `AlertasYGobiernoPMO`, se crearía el ciclo prohibido `TrazabilidadYMetricas ↔ AlertasYGobiernoPMO`.
-- **Técnica de ruptura aplicada (Guía Maestra pág. 32 — Inversión de Dependencias + Evento Asíncrono):** `TrazabilidadYMetricas` publica un evento agnóstico (`CicloConsolidadoEvento`) hacia el puerto `IBusEventosDominio` implementado en el utilitario inferior `Notificaciones`; `AlertasYGobiernoPMO` se suscribe a dicho evento. De este modo, **las importaciones en código fluyen en una sola dirección y existen `0` dependencias circulares**.
+- **Técnica de ruptura aplicada (Inversión de Dependencias + Evento Asíncrono):** `TrazabilidadYMetricas` publica un evento agnóstico (`CicloConsolidadoEvento`) hacia el puerto `IBusEventosDominio` implementado en el utilitario inferior `Notificaciones`; `AlertasYGobiernoPMO` se suscribe a dicho evento. De este modo, **las importaciones en código fluyen en una sola dirección y existen `0` dependencias circulares**.
 
 ---
 
-## 3. Capa 2 — Identificación de Utilitarios (`«Utility»`): Prueba del Ácido de las 3 Preguntas
+## 3. Capa 2 — Identificación de Utilitarios (`«Utility»`): Prueba de las 3 Preguntas
 
-Conforme a la Sección 6.4 de la Guía Maestra (pág. 32), **todo candidato a Utilitario debe responder SÍ a las 3 preguntas obligatorias**:
+Todo candidato a Utilitario fue auditado mediante tres criterios obligatorios de transversalidad y neutralidad de negocio:
 - **P1:** *¿Lo necesitan dos o más dominios diferentes?*
 - **P2:** *¿Podría copiarse íntegro a otro negocio totalmente distinto (ej. una clínica o comercio) sin modificar su código?*
 - **P3:** *¿Carece por completo de reglas de negocio específicas de la COAC Padre Julián Lorente?*
@@ -74,7 +74,7 @@ Conforme a la Sección 6.4 de la Guía Maestra (pág. 32), **todo candidato a Ut
 
 ## 4. Capa 3 — Plataformas (`«Platform»`) en los 6 Niveles Tecnológicos
 
-Conforme a la Sección 6.5 de la Guía Maestra (págs. 32–33), cada tecnología adoptada (nunca programada desde cero) se documenta con su **versión exacta, licencia y justificación técnica**, aislada tras `«Utility»`:
+Cada tecnología base adoptada de terceros se documenta con su **versión exacta, licencia y justificación técnica**, estrictamente aislada detrás de la capa `«Utility»`:
 
 | Nivel Tecnológico | Plataforma / Producto Adoptado | Versión Exacta | Licencia | Utilitario que la Aísla | Justificación Técnica y Atributo de Calidad |
 |---|---|---|---|---|---|
@@ -109,7 +109,7 @@ Conforme a la Sección 6.5 de la Guía Maestra (págs. 32–33), cada tecnologí
 ### 5.2 Diagrama de Componentes e Interfaces (Desacoplamiento por Puertos `RNF-016`)
 ![Diagrama de Componentes UML 2.5.1](uml/diagrama-componentes-desarrollo.png)
 - **Código Fuente PlantUML:** [diagrama-componentes-desarrollo.puml](uml/diagrama-componentes-desarrollo.puml)
-- **Auditoría visual:** Todos los servicios externos e infraestructura son consumidos únicamente a través de interfaces (`IExtractorSoloLectura`, `IBusEventosDominio`, `IPasarelaNotificaciones`, `IRepositorioConsolidado`, `IServicioPrivacidadYAuth`, `IGeneradorReportes`), asegurando **0 modificaciones al núcleo de dominio** al cambiar un proveedor (`RNF-016`).
+- **Auditoría visual:** Todos los servicios externos e infraestructura son consumidos únicamente a través de interfaces (`IExtractorSoloLectura`, `IBusEventosDominio`, `IPasarelaNotificaciones`, `IRepositorioConsolidado`, `IServicioPrivacidad`, `IGeneradorReportes`), asegurando **0 modificaciones al núcleo de dominio** al cambiar un proveedor (`RNF-016`).
 
 ---
 
@@ -119,7 +119,7 @@ Conforme a la Sección 6.5 de la Guía Maestra (págs. 32–33), cada tecnologí
 
 ```text
 trazabilidad-ti-coac/
-├── docs/                                # Documentación DAS v3.0 (Semanas 1 a 6)
+├── docs/                                # Documentación Arquitectónica (DAS v3.0)
 │   ├── especificaciones-casos-de-uso.md
 │   ├── vista-logica-clases.md
 │   ├── vista-procesos-ecb-secuencia.md
@@ -157,20 +157,19 @@ trazabilidad-ti-coac/
     └── e2e/                             # Pruebas Playwright (responsivo y presupuestos RNF)
 ```
 
-### 6.2 Matriz de Distribución del Equipo (Desarrollo Paralelo sin Conflictos en Git)
+### 6.2 Matriz de Distribución del Equipo (3 Integrantes — Trabajo Paralelo sin Conflictos en Git)
 
-| Rol / Integrante | Dominios Asignados (`src/dominios/`) | Utilitarios Asignados (`src/utilitarios/`) | Pruebas / Responsabilidad Directa |
+| Integrante y Rol | Dominios Asignados (`src/dominios/`) | Utilitarios Asignados (`src/utilitarios/`) | Entregables y Pruebas Bajo su Responsabilidad |
 |---|---|---|---|
-| **Integrante 1 — Arquitecto / Líder ETL** | `trazabilidad-metricas/` (`CU-01`, `CU-06`) | `integracion-externa/` + `auditoria/` | Adaptadores de solo lectura (`10 s`, `3 reintentos`, snapshot parcial), compuerta LOPDP y reglas CI/CD `dependency-cruiser`. |
-| **Integrante 2 — Desarrollador Backend Núcleo** | `planificacion-poa/` + `ejecucion-tecnica/` | `persistencia/` + `validaciones/` | Jerarquía 4 niveles, Fibonacci `2/5/13`, base `40 h`, `GLPI 4h/8h`, QA `2h`, eficiencia `70/30` e idempotencia PostgreSQL. |
-| **Integrante 3 — Desarrollador Backend Gobierno y Alertas** | `alertas-gobierno-pmo/` (`CU-02`, `CU-03`, `CU-07`, `CU-08`) | `notificaciones/` + `seguridad/` + `reportes/` | Motor `< 200 ms`, anti-spam `24 h`, conmutación TLS `>= 1.2`, autenticación `TLS 1.3` y exportación trimestral. |
-| **Integrante 4 — Desarrollador Frontend y QA E2E** | Cliente `frontend/` (`CU-03`..`CU-08`) | Contratos `IAPI_ConsultaYAlertas` + Push `< 1 s` | Vista única compartida, embudo 5 etapas, filtros `<= 400 ms` p95, diseño responsivo (`1920/768/360`) y suite Playwright. |
+| **Carlos Valladares** *(Líder Técnico / Arquitecto y ETL)* | `trazabilidad-metricas/` (`CU-01`, `CU-06`) | `integracion-externa/` + `auditoria/` + `seguridad/` *(compuerta PII LOPDP)* | Orquestación ETL periódica cada 5 min (`Redmine`, `GLPI`, `GitLab`, `SonarQube`), timeout `10 s` + 3 reintentos + snapshot parcial, bitácora inmutable `12–24 meses`, reglas CI/CD `dependency-cruiser` e integración de PRs. |
+| **Alex Gutiérrez** *(Backend Núcleo de Dominio y Datos)* | `planificacion-poa/` + `ejecucion-tecnica/` | `persistencia/` + `validaciones/` | Jerarquía de 4 niveles (`ModuloFinanciero`, `ProyectoPOA`, `HistoriaSpec`, `TareaIssue`), reglas de capacidad y calidad (`Fibonacci 2/5/13`, base `40 h`, `GLPI 4 h/8 h`, QA cruzado `2 h`, respaldo `>25 % / 100 %`, `SonarQube`), esquema `PostgreSQL 16` / `Prisma 6`, índices `<= 400 ms` p95 y pruebas TDD de fórmulas. |
+| **Luis Carrión** *(Alertas, Gobierno PMO y Frontend Web)* | `alertas-gobierno-pmo/` (`CU-02`..`CU-05`, `CU-07`, `CU-08`) + cliente `frontend/` | `notificaciones/` + `reportes/` + `seguridad/` *(sesión `CU-03` TLS 1.3)* | Motor de alertas `< 200 ms`, anti-spam `24 h`, conmutación cifrada `>= TLS 1.2`, vista web única responsiva (`1920/768/360`), push incremental `< 1 s`, filtros multidimensionales, exportación trimestral y pruebas E2E Playwright. |
 
 ---
 
 ## 7. Arquitectura Ejecutable en CI/CD (Prevención Automática de Violaciones)
 
-Siguiendo la Sección 6.7 de la Guía Maestra (pág. 34 — equivalente en TypeScript/NestJS a `ArchUnit` y `Spring Modulith`), el archivo `.dependency-cruiser.cjs` hace fallar el pipeline de CI/CD si cualquier commit viola las fronteras de la Vista de Desarrollo:
+Para que las fronteras del Diagrama de Paquetes sean verificables automáticamente en cada compilación (equivalente en TypeScript/NestJS a `ArchUnit` o `Spring Modulith`), el archivo `.dependency-cruiser.cjs` hace fallar el pipeline de CI/CD si cualquier commit viola el Principio Gravitacional, el Principio de Aislamiento o la aciclicidad:
 
 ```js
 // backend/.dependency-cruiser.cjs
@@ -224,16 +223,16 @@ module.exports = {
 
 ---
 
-## 8. Registros de Decisiones Arquitectónicas (ADRs — Plantilla de 4 Partes)
+## 8. Registros de Decisiones Arquitectónicas (ADRs)
 
 ### ADR-001: Adopción de Monolito Modular en 3 Capas frente a Microservicios
-- **1. Contexto:** El equipo cuenta con 4 integrantes y debe operar para un volumen institucional acotado (`<= 25` sesiones directivas simultáneas, `<= 5.000` registros consolidados y ciclos ETL cada 5 minutos), con estricta exigencia de atomicidad transaccional (`RNF-009`), bajo costo operativo en servidor on-premise de la COAC y mantenibilidad (`RNF-016`).
+- **1. Contexto:** El equipo de desarrollo cuenta con **3 integrantes** (**Carlos Valladares**, **Alex Gutiérrez** y **Luis Carrión**) y debe operar para un volumen institucional acotado (`<= 25` sesiones directivas simultáneas, `<= 5.000` registros consolidados y ciclos ETL cada 5 minutos), con estricta exigencia de atomicidad transaccional (`RNF-009`), bajo costo operativo en servidor on-premise de la COAC y mantenibilidad (`RNF-016`).
 - **2. Alternativas evaluadas:**
-  - *A) Microservicios independientes por dominio:* Alta complejidad operacional (orquestador de red, transacciones distribuidas Saga, múltiples despliegues y latencia de serialización entre `CU-01`, `CU-04` y `CU-05`).
-  - *B) Monolito en capas tradicionales (Controller–Service–DAO):* Riesgo de acoplamiento cruzado ("bola de lodo") y conflictos constantes en Git entre los 4 desarrolladores.
+  - *A) Microservicios independientes por dominio:* Alta complejidad operacional (orquestador de red, transacciones distribuidas Saga, múltiples despliegues y sobrecarga de mantenimiento para un equipo de 3 personas).
+  - *B) Monolito en capas tradicionales (Controller–Service–DAO):* Riesgo de acoplamiento cruzado ("bola de lodo") y conflictos frecuentes en Git al trabajar en paralelo.
   - *C) Monolito Modular en 3 Capas (`«Domain»` → `«Utility»` → `«Platform»`) auditado por `dependency-cruiser`:* Fronteras modulares estrictas con despliegue unificado y transacciones ACID locales.
 - **3. Decisión tomada:** Adoptar **Monolito Modular en 3 Capas** (NestJS 11 + PostgreSQL 16 + Valkey/Redis) con fronteras verificadas automáticamente en CI/CD.
-- **4. Consecuencias:** Se garantiza consistencia atómica e idempotencia (`0 %` duplicados), carga del tablero `<= 2 s` y filtrado `<= 400 ms` sin latencia inter-red, y desarrollo paralelo sin conflictos; como compromiso, si en el futuro creciera masivamente el volumen, el proceso ETL (`Proceso 1`) podrá extraerse como worker independiente gracias al desacoplamiento por puertos ya implementado.
+- **4. Consecuencias:** Se garantiza consistencia atómica e idempotencia (`0 %` duplicados), carga del tablero `<= 2 s` y filtrado `<= 400 ms` sin latencia inter-red, y desarrollo paralelo sin conflictos entre los 3 integrantes; como compromiso, si en el futuro creciera masivamente la carga, el proceso ETL (`Proceso 1`) podrá extraerse como worker independiente gracias al desacoplamiento por puertos ya implementado.
 
 ---
 
@@ -263,18 +262,18 @@ module.exports = {
 - **2. Alternativas evaluadas:**
   - *A) Enmascarar datos solo al mostrarlos en pantalla (UI):* Inaceptable legalmente; persistiría PII sensible en la base consolidada violando `Privacy by Design`.
   - *B) Enmascaramiento síncrono obligatorio previo a transformación (`utilitarios/seguridad/`) + bitácora *append-only* con huella SHA-256 (`utilitarios/auditoria/`):* Garantiza que ningún PII cruce hacia los expedientes y que toda fórmula sea 100 % reproducible.
-- **3. Decisión tomada:** Implementar `IServicioPrivacidadYAuth` como compuerta síncrona bloqueante (abortando el lote completo en `break 3a` ante cualquier fallo de depuración) y delegar el sellado inmutable `>= 12 meses` y retención `24 meses` al utilitario transversal `Auditoria` sobre tablas *append-only* en `PostgreSQL 16` hospedado en servidor on-premise de la COAC.
+- **3. Decisión tomada:** Implementar `IServicioPrivacidad` como compuerta síncrona bloqueante (abortando el lote completo en `break 3a` ante cualquier fallo de depuración) y delegar el sellado inmutable `>= 12 meses` y retención `24 meses` al utilitario transversal `Auditoria` sobre tablas *append-only* en `PostgreSQL 16` hospedado en servidor on-premise de la COAC.
 - **4. Consecuencias:** Cumplimiento legal verificable de la LOPDP 2021 y reproducibilidad matemática del `100 %` en auditorías (`CU-06`, `CU-08`); como compromiso, exige pruebas TDD exhaustivas de patrones PII para evitar falsos negativos y jobs programados de depuración automática al superar los `24 meses`.
 
 ---
 
-## 9. Cadena Completa de Trazabilidad del DAS v3.0 (Semanas 1 a 6)
+## 9. Cadena Completa de Trazabilidad del Documento de Arquitectura (DAS v3.0)
 
-| Sección DAS v3.0 | Semana | Artefacto Consolidado en el Repositorio | Verificación de Correspondencia |
-|---|:---:|---|---|
-| **1. Introducción, TDR y Alcance** | Sem. 1–2 | [cadena-de-valor-togaf-adm.puml](uml/cadena-de-valor-togaf-adm.puml) · [cadena-de-valor-togaf-adm.png](cadena-de-valor-togaf-adm.png) | Problema, alcance solo lectura, 4 fuentes y restricción LOPDP 2021 cerrados. |
-| **2. Interesados y Calidad** | Sem. 2 | [Requisitos-padre-julian-lorente.xlsx](Requisitos-padre-julian-lorente.xlsx) · [historias-usuario-padre-julian-lorente.xlsx](historias-usuario-padre-julian-lorente.xlsx) | `40 RF` + `40 HU` (`225 pts` Fibonacci) + `18 RNF` bajo ISO/IEC 25010:2023. |
-| **3. Vista de Escenarios (+1)** | Sem. 3 | [casos-de-uso.puml](uml/casos-de-uso.puml) · [especificaciones-casos-de-uso.md](especificaciones-casos-de-uso.md) | `8 CUs` (`5` Cockburn completos + `3` fichas), `2` actores primarios, `6` secundarios. |
-| **4. Vista Lógica** | Sem. 4 | [vista-logica-clases.md](vista-logica-clases.md) · [diagrama-clases.puml](uml/diagrama-clases.puml) · [vista-logica-clases.drawio](uml/vista-logica-clases.drawio) · [diagrama-estados.puml](uml/diagrama-estados.puml) | `16` clases, `40` operaciones, `10` enumeraciones y `3` máquinas de estado. |
-| **5. Vista de Procesos** | Sem. 5 | [vista-procesos-ecb-secuencia.md](vista-procesos-ecb-secuencia.md) · 6 archivos `uml/secuencia-*.puml` (+ `.png`) | `3` procesos, `0` violaciones ECB y `51/51` invocaciones 1:1 con Semana 4. |
-| **6. Vista de Desarrollo** | Sem. 6 | **[vista-desarrollo-componentes.md](vista-desarrollo-componentes.md)** · [diagrama-paquetes-desarrollo.puml](uml/diagrama-paquetes-desarrollo.puml) · [diagrama-componentes-desarrollo.puml](uml/diagrama-componentes-desarrollo.puml) | `4` Dominios acíclicos (DAG), `7` Utilitarios auditados, `6` niveles de Plataformas, árbol Git 1:1, reglas CI/CD y `4` ADRs. |
+| Sección del DAS v3.0 | Perspectiva Arquitectónica | Artefacto Consolidado en el Repositorio | Verificación de Correspondencia |
+|---|---|---|
+| **1. Introducción, TDR y Alcance** | Contexto Empresarial (TOGAF ADM) | [cadena-de-valor-togaf-adm.puml](uml/cadena-de-valor-togaf-adm.puml) · [cadena-de-valor-togaf-adm.png](cadena-de-valor-togaf-adm.png) | Problema, alcance solo lectura, 4 fuentes y restricción LOPDP 2021 cerrados. |
+| **2. Interesados y Calidad** | Interesados ISO 42010 / ISO 25010 | [Requisitos-padre-julian-lorente.xlsx](Requisitos-padre-julian-lorente.xlsx) · [historias-usuario-padre-julian-lorente.xlsx](historias-usuario-padre-julian-lorente.xlsx) | `40 RF` + `40 HU` (`225 pts` Fibonacci) + `18 RNF` bajo ISO/IEC 25010:2023. |
+| **3. Vista de Escenarios (+1)** | Modelo 4+1 — Escenarios | [casos-de-uso.puml](uml/casos-de-uso.puml) · [especificaciones-casos-de-uso.md](especificaciones-casos-de-uso.md) | `8 CUs` (`5` Cockburn completos + `3` fichas), `2` actores primarios, `6` secundarios. |
+| **4. Vista Lógica** | Modelo 4+1 — Dominio | [vista-logica-clases.md](vista-logica-clases.md) · [diagrama-clases.puml](uml/diagrama-clases.puml) · [vista-logica-clases.drawio](uml/vista-logica-clases.drawio) · [diagrama-estados.puml](uml/diagrama-estados.puml) | `16` clases, `40` operaciones, `10` enumeraciones y `3` máquinas de estado. |
+| **5. Vista de Procesos** | Modelo 4+1 — Concurrencia y ECB | [vista-procesos-ecb-secuencia.md](vista-procesos-ecb-secuencia.md) · 6 archivos `uml/secuencia-*.puml` (+ `.png`) | `3` procesos, `0` violaciones ECB y `51/51` invocaciones 1:1 con la Vista Lógica. |
+| **6. Vista de Desarrollo** | Modelo 4+1 — Paquetes y Código | **[vista-desarrollo-componentes.md](vista-desarrollo-componentes.md)** · [diagrama-paquetes-desarrollo.puml](uml/diagrama-paquetes-desarrollo.puml) · [diagrama-componentes-desarrollo.puml](uml/diagrama-componentes-desarrollo.puml) | `4` Dominios acíclicos (DAG), `7` Utilitarios auditados, `6` niveles de Plataformas, árbol Git 1:1, matriz de 3 integrantes, reglas CI/CD y `4` ADRs. |
