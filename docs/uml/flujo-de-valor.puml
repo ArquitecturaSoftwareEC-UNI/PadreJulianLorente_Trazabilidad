@@ -1,0 +1,187 @@
+@startuml flujo-de-valor
+!pragma layout smetana
+top to bottom direction
+skinparam dpi 150
+skinparam nodesep 18
+skinparam ranksep 28
+skinparam padding 10
+
+<style>
+document {
+  BackgroundColor #FFFFFF
+}
+title {
+  FontName SansSerif
+  FontSize 16
+  FontStyle bold
+  FontColor #1F4E78
+  HorizontalAlignment center
+}
+footer {
+  FontName SansSerif
+  FontSize 10
+  FontColor #475569
+  HorizontalAlignment center
+}
+rectangle {
+  LineColor #1F4E78
+  LineThickness 1.8
+  BackgroundColor #F8FAFC
+  FontColor #1F4E78
+  FontStyle bold
+  FontSize 12
+  RoundCorner 10
+  HorizontalAlignment center
+}
+card {
+  FontColor #0F172A
+  FontSize 10
+  LineThickness 1.5
+  RoundCorner 10
+  HorizontalAlignment center
+}
+arrow {
+  LineColor #1F4E78
+  LineThickness 1.8
+  FontColor #1E293B
+  FontSize 10
+  FontStyle bold
+}
+</style>
+
+title Flujo de Valor End-to-End (Value Stream — TOGAF ADM Fase B)\n«Asegurar Trazabilidad, Capacidad y Control de Entregas TI» — COAC Padre Julián Lorente
+
+' === DETONANTE (TRIGGER) ===
+rectangle "DETONANTE DE VALOR (TRIGGER)" as R_TRIG #EFF6FF {
+  card TRIG #DBEAFE;line:1D4ED8;text:0F172A [
+    <b>Necesidad Operativa y Directiva TI</b>
+    Solicitud estratégica POA/PETI, especificación REQ / INI.TI o incidente crítico GLPI
+    que requiere visibilidad consolidada en tiempo real del esfuerzo, avance real y calidad.
+  ]
+}
+
+' === FLUJO PRINCIPAL DE ETAPAS DE VALOR ===
+rectangle "ETAPAS SECUENCIALES DEL FLUJO DE VALOR (ENTRADA ➔ TRANSFORMACIÓN DE VALOR ➔ SALIDA)" as R_VAL #F8FAFC {
+  card V1 #E0F2FE;line:0284C7;text:0F172A [
+    <b>1. Capturar Demanda TI</b>
+    <i>Entrada:</i> Épicas POA/PETI,
+    specs REQ/INI.TI y tickets GLPI.
+    <i>Salida:</i> Línea base clasificada
+    en los 6 módulos core (RF-012/018).
+  ]
+
+  card V2 #E0F2FE;line:0284C7;text:0F172A [
+    <b>2. Ingestar y Proteger (CU-01)</b>
+    <i>Entrada:</i> Redmine, GLPI, GitLab
+    y SonarQube en solo lectura.
+    <i>Salida:</i> Lote 100 % libre de PII
+    LOPDP + snapshot resiliente (RNF-008/017).
+  ]
+
+  card V3 #FFE082;line:D97706;text:0F172A [
+    <b>3. Correlacionar 4 Niveles</b>
+    <i>Entrada:</i> Tareas #ID, ramas/MR,
+    commits tipados e incidentes GLPI.
+    <i>Salida:</i> Expediente idempotente y
+    trabajo huérfano segregado (RF-021/022).
+  ]
+
+  card V4 #FFE082;line:D97706;text:0F172A [
+    <b>4. Cuantificar Carga y Eficiencia</b>
+    <i>Entrada:</i> Fibonacci 2/5/13, base
+    40 h, QA +2 h y retornos -10 pts.
+    <i>Salida:</i> Semáforos reales, avance
+    verificado y eficiencia 70/30 (RF-002/005).
+  ]
+
+  card V5 #FED7AA;line:EA580C;text:0F172A [
+    <b>5. Detectar y Alertar (CU-02)</b>
+    <i>Entrada:</i> Umbrales >40 h, >5 d Cert.,
+    retornos y P1 (< 200 ms).
+    <i>Salida:</i> Alertas anti-spam 24 h vía
+    Mensajería/Correo TLS ≥ 1.2 (RF-023..025).
+  ]
+
+  card V6 #DCFCE7;line:15803D;text:0F172A [
+    <b>6. Gobernar y Decidir (CU-03..08)</b>
+    <i>Entrada:</i> Tablero único ≤ 2 s,
+    filtros ≤ 400 ms y auditoría < 10 s.
+    <i>Salida:</i> Balanceo de carga, causa raíz
+    y reporte trimestral ejecutivo (RF-040).
+  ]
+}
+
+' === CAPACIDADES HABILITADORAS ===
+rectangle "CAPACIDADES HABILITADORAS POR ETAPA DEL FLUJO" as R_CAP #F8FAFC {
+  card H1 #E8F1FA;line:1F4E78;text:0F172A [
+    <b>Gobierno POA/PETI</b>
+    Catálogo oficial de
+    6 módulos financieros
+    y línea base 4 niveles.
+  ]
+
+  card H2 #E8F1FA;line:1F4E78;text:0F172A [
+    <b>Ingesta Solo Lectura</b>
+    CRON 5 min, timeout 10 s,
+    3 reintentos y compuerta
+    obligatoria LOPDP 2021.
+  ]
+
+  card H3 #E8F1FA;line:1F4E78;text:0F172A [
+    <b>Correlación Tolerante</b>
+    Llave compuesta 0 %
+    duplicados, cruce GLPI
+    y divergencia autor/QA.
+  ]
+
+  card H4 #E8F1FA;line:1F4E78;text:0F172A [
+    <b>Analítica y Evidencia</b>
+    Respaldo código >25 %/100 %,
+    embudo 5 etapas y huella
+    matemática ≥ 12 meses.
+  ]
+
+  card H5 #E8F1FA;line:1F4E78;text:0F172A [
+    <b>Notificación Resiliente</b>
+    Supresión 24 h, estado
+    atendida y conmutación
+    automática a correo TLS.
+  ]
+
+  card H6 #E8F1FA;line:1F4E78;text:0F172A [
+    <b>Observabilidad PMO</b>
+    Acceso web TLS 1.3 sin VPN,
+    vista única solo lectura y
+    exportación ejecutiva.
+  ]
+}
+
+' === RESULTADO DE VALOR FINAL (OUTCOME) ===
+rectangle "PROPUESTA DE VALOR FINAL (VALUE OUTCOME)" as R_OUT #ECFDF5 {
+  card OUTC #DCFCE7;line:15803D;text:0F172A [
+    <b>Control Real del Portafolio TI y Sostenibilidad del Equipo</b>
+    Visibilidad directiva unificada sin fricción sobre desarrolladores · Avance real verificado en código fuente
+    Prevención oportuna de sobrecarga laboral (> 40 h) y cuellos de botella · Auditoría reproducible 100 % conforme LOPDP 2021
+  ]
+}
+
+V1 -right-> V2
+V2 -right-> V3
+V3 -right-> V4
+V4 -right-> V5
+V5 -right-> V6
+
+H1 -[hidden]right-> H2
+H2 -[hidden]right-> H3
+H3 -[hidden]right-> H4
+H4 -[hidden]right-> H5
+H5 -[hidden]right-> H6
+
+TRIG -[hidden]down-> V3
+V1 -[hidden]down-> H1
+V3 -[hidden]down-> H3
+V6 -[hidden]down-> H6
+H3 -[hidden]down-> OUTC
+
+footer Flujo de Valor TOGAF ADM — Enlace directo entre la Cadena de Valor y el Mapa de Capacidades (CU-01 a CU-08)
+@enduml
