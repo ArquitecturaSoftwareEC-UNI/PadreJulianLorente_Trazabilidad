@@ -144,13 +144,11 @@ Todo candidato se sometió a la **Tarjeta de Filtro (Lámina 4)** y a los **4 Ro
 ## 3. Compuerta 3 y Compuerta 4 — Diagrama de Clases UML 2.5.1 en 4 Paquetes Lógicos y Decisiones Críticas
 
 ### 3.1 Artefactos Vectoriales, PlantUML e Imágenes Generadas
-- **Fuente Nativa Editable Draw.io:** [docs/uml/vista-logica-clases.drawio](uml/vista-logica-clases.drawio)
-- **Exportación Vectorial SVG (Draw.io `-e`):** [docs/uml/vista-logica-clases.drawio.svg](uml/vista-logica-clases.drawio.svg)
-- **Exportación PNG de Alta Densidad (Draw.io `3x` / 300 DPI):** [docs/uml/vista-logica-clases.drawio.png](uml/vista-logica-clases.drawio.png)
-- **Código Fuente Reproducible PlantUML (Diagrama de Clases):** [docs/uml/diagrama-clases.puml](uml/diagrama-clases.puml) · [docs/uml/diagrama-clases.png](uml/diagrama-clases.png)
+- **Código Fuente Reproducible PlantUML (Diagrama de Clases UML 2.5.1 Unificado sin Paquetes — Vigente):** [docs/uml/diagrama-clases.puml](uml/diagrama-clases.puml) · [docs/uml/diagrama-clases.png](uml/diagrama-clases.png)
 - **Diagrama de Estados UML 2.5.1 (Ciclos de Vida Críticos):** [docs/uml/diagrama-estados.puml](uml/diagrama-estados.puml) · [docs/uml/diagrama-estados.png](uml/diagrama-estados.png)
+- **Archivo Histórico Editable Draw.io:** [docs/uml/vista-logica-clases.drawio](uml/vista-logica-clases.drawio) · [docs/uml/vista-logica-clases.drawio.svg](uml/vista-logica-clases.drawio.svg)
 
-![Diagrama de Clases del Dominio en 4 Paquetes Lógicos (Draw.io 3x)](uml/vista-logica-clases.drawio.png)
+![Diagrama de Clases del Dominio UML 2.5.1 (16 Clases, 40 Operaciones, 10 Enumeraciones)](uml/diagrama-clases.png)
 
 ---
 

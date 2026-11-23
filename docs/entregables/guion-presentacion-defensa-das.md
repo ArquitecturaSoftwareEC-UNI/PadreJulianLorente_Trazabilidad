@@ -223,42 +223,43 @@
 
 ---
 
-### LÁMINA 7 — Diagrama 5: Vista Lógica — Diagrama de Clases del Dominio en 4 Paquetes
+### LÁMINA 7 — Diagrama 5: Vista Lógica — Diagrama de Clases del Dominio UML 2.5.1
 - **Expositor:** **Alex Daniel Gutiérrez Córdova** *(Tiempo aprox.: 2 minutos y 30 segundos)*
-- **Imagen proyectada:** [`docs/uml/vista-logica-clases.drawio.png`](../uml/vista-logica-clases.drawio.png)
+- **Imagen proyectada:** [`docs/uml/diagrama-clases.png`](../uml/diagrama-clases.png)
 
 #### Cómo leer y señalar el diagrama con el mouse
-- El diagrama está organizado limpiamente en **4 grandes cuadrantes de colores (los 4 Paquetes Lógicos)** más una barra inferior con el **Catálogo de las 10 Enumeraciones**:
-  1. **Cuadrante Superior Izquierdo (Azul — `PAQUETE 1: Planificación y Jerarquía POA/PETI`):** `ModuloFinanciero` ➔ `ProyectoPOA` ➔ `HistoriaSpec` ➔ `TareaIssue`.
-  2. **Cuadrante Superior Derecho (Verde — `PAQUETE 2: Ejecución Técnica y Calidad`):** `IncidenteSoporte`, `Desarrollador`, `ActividadCodigo`, `ReporteCalidad`.
-  3. **Cuadrante Inferior Izquierdo (Amarillo/Crema — `PAQUETE 3: Trazabilidad, 5 Etapas y Métricas`):** `ExpedienteTrazabilidad`, `HitoEtapa`, `IndicadorDesempeno`, `RetornoFallo`.
-  4. **Cuadrante Inferior Derecho (Morado/Lila — `PAQUETE 4: Alertas, Gestión y Auditoría PMO`):** `AlertaOperativa`, `DespachoNotificacion`, `UsuarioGestion`, `ReporteTrimestral`.
+- Es un **Diagrama de Clases UML 2.5.1 unificado (sin contenedores de paquetes, dado que los paquetes tienen su diagrama dedicado en la Vista de Desarrollo)**, coloreado suavemente por afinidad temática para lectura rápida:
+  1. **Zona Superior-Izquierda (Celeste — Planificación y Jerarquía POA/PETI):** `ModuloFinanciero` ➔ `ProyectoPOA` ➔ `HistoriaSpec` ➔ `TareaIssue`.
+  2. **Zona Superior-Derecha (Verde — Ejecución Técnica y Calidad):** `Desarrollador`, `ActividadCodigo`, `IncidenteSoporte`, `ReporteCalidad`.
+  3. **Zona Media-Izquierda (Crema/Amarillo — Trazabilidad, 5 Etapas y Métricas):** `ExpedienteTrazabilidad`, `HitoEtapa`, `RetornoFallo`, `IndicadorDesempeno`.
+  4. **Zona Media-Derecha e Inferior (Morado — Alertas, Gestión y Auditoría PMO):** `UsuarioGestion`, `AlertaOperativa`, `DespachoNotificacion`, `ReporteTrimestral`.
+  5. **Pie del diagrama:** Las **10 Enumeraciones (`«enumeration»`)** en 2 filas de 5 cajas UML formales.
 
 #### Guión Hablado Completo
 > «Muchas gracias, Carlos. En la **Vista Lógica** definimos con qué conceptos y estructura de dominio el sistema soporta los 8 Casos de Uso.
 >
-> Antes de dibujar, aplicamos una **decomposición gramatical** sobre los escenarios y pasamos cada sustantivo candidato por los **4 criterios de filtrado de entidad** (¿el sistema debe recordarlo a largo plazo?, ¿tiene más de un atributo?, ¿posee identidad y ciclo de vida propio?, ¿participa en al menos un caso de uso?). Gracias a este filtro **descartamos como clases de dominio a los elementos visuales de interfaz gráfica** (como *Tablero*, *Tarjeta*, *Mapa de calor* o *Botón de filtro*), **a los parámetros volátiles** (como *Rango de fechas*) y **a los actores externos**.
+> Antes de dibujar, aplicamos una **descomposición gramatical** sobre los escenarios y pasamos cada sustantivo candidato por los **4 criterios de filtrado de entidad** (¿el sistema debe recordarlo a largo plazo?, ¿tiene más de un atributo?, ¿posee identidad y ciclo de vida propio?, ¿participa en al menos un caso de uso?). Gracias a este filtro **descartamos como clases de dominio a los elementos visuales de interfaz gráfica** (como *Tablero*, *Tarjeta*, *Mapa de calor* o *Botón de filtro*), **a los parámetros volátiles** (como *Rango de fechas*) y **a los actores externos**.
 >
-> El resultado es un modelo altamente cohesivo y sin "clases dios", compuesto por **16 clases de entidad (`«entity»`)**, **40 operaciones públicas (`+`)**, **78 atributos** (distinguiendo con barra inclinada `/` los atributos derivados por fórmula) y **10 enumeraciones cerradas**, distribuidos en **4 paquetes lógicos**:
+> El resultado es nuestro **Diagrama de Clases UML 2.5.1** unificado sin divisiones de paquetes (las cuales modelamos más adelante en el Diagrama de Paquetes), compuesto por **16 clases de entidad (`«entity»`)**, **40 operaciones públicas (`+`)**, **78 atributos** (distinguiendo con `/` los atributos derivados por fórmula) y **10 enumeraciones cerradas** al pie:
 >
-> 1. **En el Paquete 1 — Planificación y Jerarquía (`POA/PETI`, cuadrante azul superior izquierdo):**
+> 1. **Núcleo de Planificación y Jerarquía (`POA/PETI`, clases celestes):**
 >    Modelamos los tres primeros niveles de la jerarquía oficial (`RF-033`):
 >    - `ModuloFinanciero` representa los 6 sistemas core (`[1..6]`) y agrupa mediante **agregación (`◇`, rombo blanco)** de `0..*` instancias de `ProyectoPOA` (Nivel 1).
 >    - `ProyectoPOA` posee **composición fuerte (`◆`, rombo negro)** hacia `1..*` `HistoriaSpec` (Nivel 2, que distingue entre requerimientos `REQ` e iniciativas `INI.TI`), porque una especificación no existe fuera de su proyecto POA.
 >    - `HistoriaSpec` desglosa mediante agregación `0..*` `TareaIssue` (Nivel 3, `#ID` en Redmine), cuyas operaciones públicas `+ validarRespaldoEnCodigo()`, `+ cambiarEtapaOficial()` y `+ enlazarIncidenteGLPI()` convierten la complejidad a Fibonacci (`2, 5 o 13 pts`) y verifican el avance real.
 >
-> 2. **En el Paquete 2 — Ejecución Técnica y Calidad (cuadrante verde superior derecho):**
+> 2. **Núcleo de Ejecución Técnica y Calidad (clases verdes):**
 >    Modelamos `Desarrollador`, `ActividadCodigo` (Nivel 4 en GitLab), `IncidenteSoporte` (tickets GLPI) y `ReporteCalidad` (análisis de SonarQube que penaliza `-5 puntos` por cada bug crítico o vulnerabilidad).
 >    **Aquí defendemos las dos decisiones estructurales más importantes de nuestro diagrama de clases:**
 >    - **Primera decisión (Asociación por Roles en lugar de Herencia sobre `Desarrollador`):** En una semana laboral, un mismo programador puede actuar como *responsable asignado* de una tarea en Redmine, *autor real de commits* en GitLab, *revisor de QA cruzado* (`+2 horas / 1 punto`) en el Merge Request de un compañero, y *técnico de soporte* en un incidente GLPI (`+4 horas / 3 puntos` estándar u `+8 horas / 5 puntos` si es crítico del core financiero). Si hubiéramos usado herencia (`DesarrolladorRedmine`, `DesarrolladorQA`, etc.), habríamos creado acoplamiento rígido e imposibilidad de que una misma instancia cumpla varios roles simultáneos. Al modelarlo con **asociaciones etiquetadas por rol**, calculamos limpiamente su carga semanal sobre la base fija `capacidadBaseSemanal = 40.0` (`+ calcularCargaLaboral40h()` y `+ determinarSemaforoCapacidad()`), y además auditamos con `+ auditarDivergenciaAutoria()` cuándo quien subió el código en GitLab no es quien figuraba asignado en Redmine (`RF-017`).
->    - **Segunda decisión (Multiplicidad Opcional `0..1` entre `TareaIssue` y `ActividadCodigo` / `IncidenteSoporte`):** Observemos las dos líneas que cruzan del Paquete 1 al Paquete 2 con cardinalidad **`0..1`** del lado de `TareaIssue`. ¿Por qué `0..1` y no `1` obligatorio? Porque en la vida real los programadores a veces suben commits urgentes a GitLab sin haber creado la tarea en Redmine, o atienden un ticket en GLPI sin tarea espejo. Cuando esa multiplicidad vale `0`, los métodos `+ clasificarCodigoSinTrazabilidad()` (`RF-021`) y `+ clasificarSoporteSinTrazabilidad()` (`RF-022`) capturan ese trabajo huérfano y **suman sus horas a las 40 h semanales** en lugar de rechazar el registro.
+>    - **Segunda decisión (Multiplicidad Opcional `0..1` entre `TareaIssue` y `ActividadCodigo` / `IncidenteSoporte`):** Observemos las líneas con cardinalidad **`0..1`** del lado de `TareaIssue`. ¿Por qué `0..1` y no `1` obligatorio? Porque en la vida real los programadores a veces suben commits urgentes a GitLab sin haber creado la tarea en Redmine, o atienden un ticket en GLPI sin tarea espejo. Cuando esa multiplicidad vale `0`, los métodos `+ clasificarCodigoSinTrazabilidad()` (`RF-021`) y `+ clasificarSoporteSinTrazabilidad()` (`RF-022`) capturan ese trabajo huérfano y **suman sus horas a las 40 h semanales** en lugar de rechazar el registro.
 >
-> 3. **En el Paquete 3 — Trazabilidad, 5 Etapas y Métricas (cuadrante amarillo inferior izquierdo):**
->    - El núcleo es `ExpedienteTrazabilidad`, que consolida cada 5 minutos los 4 niveles sin duplicados mediante `llaveNaturalCompuesta` (`RNF-009`) y aplica **Privacy by Design (`LOPDP 2021`)**: ninguna de las 16 clases tiene campos para datos personales de socios, y la operación `+ verificarCompuertaLOPDP()` garantiza `anonimizadoLOPDP = verdadero` antes de persistir.
+> 3. **Núcleo de Trazabilidad, 5 Etapas y Métricas (clases amarillas):**
+>    - El centro es `ExpedienteTrazabilidad`, que consolida cada 5 minutos los 4 niveles sin duplicados mediante `llaveNaturalCompuesta` (`RNF-009`) y aplica **Privacy by Design (`LOPDP 2021`)**: ninguna de las 16 clases tiene campos para datos personales de socios, y la operación `+ verificarCompuertaLOPDP()` garantiza `anonimizadoLOPDP = verdadero` antes de persistir.
 >    - `ExpedienteTrazabilidad` **compone fuertemente (`◆`)** de `1..5` `HitoEtapa` (el recorrido por las 5 etapas oficiales donde `+ detectarAtrasoCertificacion()` marca cuello de botella si supera `> 5 días hábiles` en Certificación o `> 2 días` en Despliegue).
 >    - De `HitoEtapa` nace `RetornoFallo` (`-10.0 puntos` por cada retroceso desde Certificación/CI-CD hacia Desarrollo), el cual junto con `ReporteCalidad` alimenta a `IndicadorDesempeno`, donde `+ calcularEficiencia7030()` aplica el `70 %` al avance real y el `30 %` a la calidad técnica, y `+ sellarRastroInmutable()` guarda el hash criptográfico de entradas y pesos por al menos **12 meses** (`RNF-001`).
 >
-> 4. **Finalmente, en el Paquete 4 — Alertas, Gestión y Auditoría PMO (cuadrante morado inferior derecho):**
+> 4. **Núcleo de Alertas, Gestión y Auditoría PMO (clases moradas):**
 >    - `AlertaOperativa` evalúa los umbrales en `< 200 ms` (`+ evaluarUmbralEn200ms()`), verifica la ventana anti-spam de 24 horas (`+ verificarSupresion24Horas()`) y gestiona el cambio de estado en `CU-07` (`+ marcarEstadoGestion()`).
 >    - Compone fuertemente (`◆`) a `1..*` `DespachoNotificacion` (que envía al Canal de Mensajería sobre `TLS >= 1.2`, conmuta a Correo con `+ escalarACorreoPorFallo()` y persiste el `100 %` en bitácora).
 >    - Y cerramos con `UsuarioGestion` (sesión autenticada en solo lectura del Jefe de Desarrollo / PMO con cierre en `< 200 ms`) y `ReporteTrimestral` (`CU-08`).»
