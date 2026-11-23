@@ -1,0 +1,164 @@
+@startuml diagrama-estados
+!pragma layout smetana
+top to bottom direction
+skinparam dpi 150
+skinparam roundcorner 10
+skinparam shadowing false
+skinparam defaultFontName SansSerif
+skinparam defaultFontSize 12
+
+<style>
+document {
+  BackgroundColor #FFFFFF
+}
+title {
+  FontName SansSerif
+  FontSize 15
+  FontStyle bold
+  FontColor #1F4E78
+}
+state {
+  BackgroundColor #F8FAFC
+  BorderColor #1F4E78
+  FontColor #0F172A
+  RoundCorner 10
+}
+arrow {
+  LineColor #334155
+  LineThickness 1.3
+  FontColor #1E293B
+  FontSize 10
+}
+</style>
+
+title Vista Lógica (Semana 4) — Diagrama de Estados UML 2.5.1\nCiclos de Vida Críticos derivados de Flujos Alternos y Excepciones (CU-01, CU-02, CU-06 y CU-07)
+
+' ============================================================================
+' MÁQUINA DE ESTADOS 1: ExpedienteTrazabilidad (EstadoSincronizacion · CU-01)
+' ============================================================================
+state "1. Ciclo de Vida de ExpedienteTrazabilidad (EstadoSincronizacion · CU-01)" as SM_Sync #F0F9FF {
+  [*] --> ExtrayendoSoloLectura : disparo CRON cada 5 min (RF-029)
+
+  state ExtrayendoSoloLectura #E0F2FE {
+    ExtrayendoSoloLectura : do / consultar Redmine, GLPI, GitLab, SonarQube (RNF-003)
+  }
+
+  state EvaluandoCompuertaLOPDP #FEF3C7 {
+    EvaluandoCompuertaLOPDP : do / verificarCompuertaLOPDP() 100% sin PII (RNF-017)
+  }
+
+  state SincronizacionParcialSnapshot #FEF3C7 {
+    SincronizacionParcialSnapshot : entry / preservar último snapshot válido (RNF-008)
+    SincronizacionParcialSnapshot : do / prohibido reclasificar como sin trazabilidad
+  }
+
+  state TrabajoSinTrazabilidad #FFE4E6 {
+    TrabajoSinTrazabilidad : entry / segregar RF-021 (GitLab) o RF-022 (GLPI)
+    TrabajoSinTrazabilidad : do / conservar esfuerzo en carga semanal 40 h
+  }
+
+  state ConsolidadoCompleto #DCFCE7 {
+    ConsolidadoCompleto : entry / unificarHistorial4Niveles() (0% duplicados RNF-009)
+    ConsolidadoCompleto : do / sellarRastroInmutable() >= 12 m · retención 24 m
+  }
+
+  state AbortadoPorRiesgoLOPDP #FEE2E2 {
+    AbortadoPorRiesgoLOPDP : entry / descartar lote íntegro antes de persistir
+  }
+
+  state AbortadoFalloTotal #FEE2E2 {
+    AbortadoFalloTotal : entry / mantener 100% línea vigente sin sobreescribir
+  }
+
+  ExtrayendoSoloLectura --> AbortadoFalloTotal : [2b: fallan todas las fuentes o credenciales tras 3 reintentos]
+  ExtrayendoSoloLectura --> SincronizacionParcialSnapshot : [2a: cae 1 fuente > 10 s tras 3 reintentos]
+  ExtrayendoSoloLectura --> EvaluandoCompuertaLOPDP : [4 fuentes respondieron OK]
+  SincronizacionParcialSnapshot --> EvaluandoCompuertaLOPDP : [combinar con fuentes disponibles]
+  EvaluandoCompuertaLOPDP --> AbortadoPorRiesgoLOPDP : [3a: falla verificación 100% PII]
+  EvaluandoCompuertaLOPDP --> TrabajoSinTrazabilidad : [6a/6b: falta tarea Redmine o espejo GLPI]
+  EvaluandoCompuertaLOPDP --> ConsolidadoCompleto : [vínculo completo 4 niveles + sin conflicto]
+  TrabajoSinTrazabilidad --> ConsolidadoCompleto : [consolidar expediente segregado en lote]
+  ConsolidadoCompleto --> AbortadoFalloTotal : [8a: conflicto al persistir / rollback completo]
+
+  AbortadoFalloTotal --> [*]
+  AbortadoPorRiesgoLOPDP --> [*]
+  ConsolidadoCompleto --> [*]
+}
+
+' ============================================================================
+' MÁQUINA DE ESTADOS 2: HitoEtapa / TareaIssue (5 Etapas Oficiales · RF-015, RF-019)
+' ============================================================================
+state "2. Ciclo de Vida de TareaIssue / HitoEtapa (Embudo de 5 Etapas · RF-015, RF-019, RF-036)" as SM_Etapa #F0FDF4 {
+  [*] --> E1_Analisis : crear petición Redmine (RF-033)
+
+  state "1_Analisis" as E1_Analisis #E0F2FE
+  state "2_Desarrollo" as E2_Desarrollo #E0F2FE {
+    E2_Desarrollo : do / validarRespaldoEnCodigo() (>25% rama + commits tipados RF-038)
+  }
+  state "3_Certificacion" as E3_Certificacion #FEF3C7 {
+    E3_Certificacion : do / detectarAtrasoCertificacion() (>5 d hábiles = cuello rojo RF-036)
+  }
+  state "4_Despliegue" as E4_Despliegue #FEF3C7 {
+    E4_Despliegue : do / vigilar permanencia (>2 d = cuello rojo RF-036)
+  }
+  state "5_Estabilizacion" as E5_Estabilizacion #DCFCE7
+
+  E1_Analisis --> E2_Desarrollo : asignar desarrollador y estimación Fibonacci (2/5/13)
+  E2_Desarrollo --> E3_Certificacion : [100% desarrollo: MR aprobado + CI/CD exitoso (RF-038)]
+  E3_Certificacion --> E2_Desarrollo : [5b: rechazo en Certificación o CI/CD · RetornoFallo (-10 pts RF-015)]
+  E3_Certificacion --> E4_Despliegue : certificación aprobada sin defectos críticos
+  E4_Despliegue --> E5_Estabilizacion : pase a producción verificado
+  E5_Estabilizacion --> [*] : cierre estabilizado
+}
+
+' ============================================================================
+' MÁQUINA DE ESTADOS 3: AlertaOperativa (EstadoAlerta · CU-02 y CU-07)
+' ============================================================================
+state "3. Ciclo de Vida de AlertaOperativa (EstadoAlerta · CU-02 y CU-07)" as SM_Alerta #F5F3FF {
+  [*] --> EvaluandoUmbral : <<extend>> CU-01 [umbral crítico superado]
+
+  state EvaluandoUmbral #EDE9FE {
+    EvaluandoUmbral : do / evaluarUmbralEn200ms() (< 200 ms RNF-010)
+  }
+
+  state Suprimida24h #F1F5F9 {
+    Suprimida24h : entry / registrarBitacora100PorCiento() sin reenvío externo (RF-023)
+  }
+
+  state Emitida #FEF3C7 {
+    Emitida : entry / despacharCanalMensajeria() >= TLS 1.2 (RF-024)
+    Emitida : do / escalarACorreoPorFallo() ante fallo 4a o criticidad (RF-025)
+  }
+
+  state EntregaFallida #FEE2E2 {
+    EntregaFallida : entry / registrarBitacora100PorCiento() (5a · visible en vista única RNF-004)
+  }
+
+  state EnSeguimiento #E0F2FE {
+    EnSeguimiento : entry / marcarEstadoGestion() por Jefatura/PMO (detiene recordatorios RF-026)
+  }
+
+  state Atendida #DCFCE7 {
+    Atendida : entry / confirmar consolidación íntegra al cierre < 200 ms (RF-027, RNF-011)
+  }
+
+  EvaluandoUmbral --> Suprimida24h : [3a: idéntica en últimas 24 h o ya gestionada en CU-07]
+  EvaluandoUmbral --> Emitida : [nueva desviación o agravamiento + entrega externa OK]
+  EvaluandoUmbral --> EntregaFallida : [5a: caída simultánea de Mensajería y Correo]
+  EntregaFallida --> Emitida : [reintento posterior exitoso]
+  EntregaFallida --> EnSeguimiento : gestión directa desde vista única (CU-07)
+  Emitida --> EnSeguimiento : marcar "En seguimiento" (CU-07 · RF-026)
+  Emitida --> Atendida : marcar "Atendida" (CU-07 · RF-026)
+  EnSeguimiento --> Atendida : cerrar acción correctiva (CU-07)
+  EnSeguimiento --> Emitida : [nuevo agravamiento detectado en CU-01]
+
+  Suprimida24h --> [*]
+  Atendida --> [*]
+}
+
+' Orden vertical limpio entre las 3 máquinas de estado
+SM_Sync -[hidden]down-> SM_Etapa
+SM_Etapa -[hidden]down-> SM_Alerta
+
+footer Diagrama de Estados UML 2.5.1 alineado con docs/vista-logica-clases.md y docs/especificaciones-casos-de-uso.md
+@enduml

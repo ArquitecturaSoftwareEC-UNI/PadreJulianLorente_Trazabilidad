@@ -117,7 +117,7 @@ end
 
 ' ----------------------------------------------------------------------------
 == 4. Escalamiento adicional por Servicio de Correo Corporativo (RF-025, RNF-015) ==
-opt > 5 días hábiles en Certificación, incidente Prioridad 1 o cambio de prioridad POA
+opt > 5 días hábiles en Certificación, incidente Prioridad 1 o cambio prioridad POA [y no enviada aún por conmutación 4a]
   Ctrl -> Desp ++ : escalarACorreoPorFallo()
   Desp --> Ctrl -- : escalamientoCorreoAprobado
   Ctrl -> AdMail ++ : transmitirNotificacionCorreo(destinatarios, mensajeEjecutivoClaro, cifrado = "TLS >= 1.2")

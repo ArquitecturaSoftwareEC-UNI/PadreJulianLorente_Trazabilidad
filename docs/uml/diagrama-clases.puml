@@ -1,0 +1,365 @@
+@startuml diagrama-clases
+!pragma layout smetana
+top to bottom direction
+skinparam dpi 150
+skinparam classAttributeIconSize 0
+skinparam roundcorner 8
+skinparam shadowing false
+skinparam defaultFontName SansSerif
+skinparam defaultFontSize 11
+skinparam nodesep 24
+skinparam ranksep 28
+
+<style>
+document {
+  BackgroundColor #FFFFFF
+}
+title {
+  FontName SansSerif
+  FontSize 15
+  FontStyle bold
+  FontColor #1F4E78
+}
+package {
+  LineThickness 1.6
+  RoundCorner 10
+  FontStyle bold
+  FontSize 12
+}
+class {
+  RoundCorner 8
+  LineThickness 1.3
+  FontColor #0F172A
+}
+enum {
+  BackgroundColor #F8FAFC
+  BorderColor #475569
+  FontColor #0F172A
+  RoundCorner 8
+}
+arrow {
+  LineColor #334155
+  LineThickness 1.2
+  FontColor #1E293B
+  FontSize 10
+}
+</style>
+
+title Vista Lógica (Semana 4) — Diagrama de Clases del Dominio UML 2.5.1\nSistema de Trazabilidad TI — COAC Padre Julián Lorente (4 Paquetes · 16 Clases · CU-01 a CU-08 · 40 RF · 18 RNF)
+
+' ============================================================================
+' PAQUETE 1 — PLANIFICACIÓN Y JERARQUÍA (POA / PETI · Redmine)
+' ============================================================================
+package "Paquete 1 — Planificación y Jerarquía (POA/PETI)" as P1 #F0F9FF {
+  class ModuloFinanciero <<entity>> #E0F2FE {
+    - codigoModulo : Texto
+    - nombreCore : ModuloCoreFinanciero [1..6]
+    - /totalTareasActivas : Entero
+    - /tieneCuelloBotella : Booleano
+    --
+    + consolidarPorModulo() : ExpedienteTrazabilidad
+    + evaluarCuelloBotellaEmbudo() : Booleano
+  }
+
+  class ProyectoPOA <<entity>> #E0F2FE {
+    - codigoPOA : Texto
+    - nombreProyecto : Texto
+    - prioridadEstrategica : Entero
+    - /avancePlanificadoVsReal : Decimal
+    --
+    + calcularDesviacionAvance() : Decimal
+    + registrarCambioPrioridad(nueva : Entero) : Booleano
+  }
+
+  class HistoriaSpec <<entity>> #E0F2FE {
+    - codigoSpec : Texto
+    - tipoRequerimiento : TipoEspecificacion
+    - horasEstimadasBase : Decimal
+    - fechaCompromiso : FechaHora
+    - /porcentajeCumplimiento : Decimal
+    --
+    + desglosarTareasPlanificadas() : Lista<TareaIssue>
+    + calcularAvancePonderado() : Decimal
+  }
+
+  class TareaIssue <<entity>> #E0F2FE {
+    - codigoIssue : Texto
+    - complejidad : NivelComplejidad
+    - etapaActual : EtapaOficial
+    - porcentajeReportado : Decimal
+    - /avanceRealVerificado : Decimal
+    --
+    + validarRespaldoEnCodigo() : Decimal
+    + cambiarEtapaOficial() : EtapaOficial
+    + enlazarIncidenteGLPI() : Booleano
+  }
+}
+
+' ============================================================================
+' PAQUETE 2 — EJECUCIÓN TÉCNICA Y CALIDAD (GitLab · GLPI · SonarQube)
+' ============================================================================
+package "Paquete 2 — Ejecución Técnica y Calidad (Carga 40 h · Roles)" as P2 #F0FDF4 {
+  class Desarrollador <<entity>> #DCFCE7 {
+    - codigoDesarrollador : Texto
+    - nombreCompleto : Texto
+    - capacidadBaseSemanal : Decimal = 40.0
+    - /horasEfectivasSemana : Decimal
+    - /semaforo : NivelSemaforo
+    --
+    + calcularCargaLaboral40h() : Decimal
+    + determinarSemaforoCapacidad() : NivelSemaforo
+    + auditarDivergenciaAutoria() : Booleano
+  }
+
+  class ActividadCodigo <<entity>> #DCFCE7 {
+    - ramaActiva : Texto
+    - codigoMergeRequest : Texto
+    - tipoCommit : TipoCommit
+    - mrAprobado : Booleano
+    - pipelineCICDExitoso : Booleano
+    --
+    + verificarCommitsTipados25PorCiento() : Booleano
+    + validarCierreCienPorCiento() : Booleano
+    + clasificarCodigoSinTrazabilidad() : Booleano
+  }
+
+  class IncidenteSoporte <<entity>> #DCFCE7 {
+    - codigoGLPI : Texto
+    - esCriticoCoreFinanciero : Booleano
+    - /horasCargaEstandar : Decimal
+    - /puntosFibonacci : Entero
+    - /tieneTareaEspejoRedmine : Booleano
+    --
+    + normalizarReferenciaGLPI() : Texto
+    + asignarEsfuerzoAutomatico() : Decimal
+    + clasificarSoporteSinTrazabilidad() : Booleano
+  }
+
+  class ReporteCalidad <<entity>> #DCFCE7 {
+    - codigoAnalisis : Texto
+    - bugsCriticosAbiertos : Entero
+    - vulnerabilidadesAbiertas : Entero
+    - fechaInspeccion : FechaHora
+    - /puntosPenalizacion : Decimal
+    --
+    + calcularPenalizacionCalidad() : Decimal
+    + verificarCompuertaCalidad() : Booleano
+  }
+}
+
+' ============================================================================
+' PAQUETE 3 — TRAZABILIDAD, 5 ETAPAS Y MÉTRICAS (LOPDP · RNF-001 · RNF-009)
+' ============================================================================
+package "Paquete 3 — Trazabilidad, 5 Etapas y Métricas (LOPDP 2021)" as P3 #FFFBEB {
+  class ExpedienteTrazabilidad <<entity>> #FEF3C7 {
+    - codigoExpediente : Texto
+    - llaveNaturalCompuesta : Texto
+    - estadoSincronizacion : EstadoSincronizacion
+    - anonimizadoLOPDP : Booleano = verdadero
+    - /tieneBrechaEvidencia : Booleano
+    --
+    + unificarHistorial4Niveles() : ExpedienteTrazabilidad
+    + verificarCompuertaLOPDP() : Booleano
+    + reconstruirCausaRaiz() : ExpedienteTrazabilidad
+  }
+
+  class HitoEtapa <<entity>> #FEF3C7 {
+    - etapaOficial : EtapaOficial [1..5]
+    - fechaHoraIngreso : FechaHora
+    - fechaHoraSalida : FechaHora [0..1]
+    - /diasHabilesPermanencia : Decimal
+    - /esCuelloDeBotella : Booleano
+    --
+    + calcularDiasHabiles() : Decimal
+    + detectarAtrasoCertificacion() : Booleano
+  }
+
+  class RetornoFallo <<entity>> #FEF3C7 {
+    - codigoRetorno : Texto
+    - etapaOrigenRechazo : EtapaOficial
+    - motivoRechazo : Texto
+    - fechaHoraRetorno : FechaHora
+    - penalizacionCalidad : Decimal = -10.0
+    --
+    + registrarRetornoADesarrollo() : Entero
+    + aplicarDescuentoDiezPuntos() : Decimal
+  }
+
+  class IndicadorDesempeno <<entity>> #FEF3C7 {
+    - codigoIndicador : Texto
+    - pesoAvanceReal : Decimal = 70.0
+    - pesoCalidadTecnica : Decimal = 30.0
+    - /puntajeEficiencia : Decimal
+    - huellaInmutable12Meses : Texto
+    --
+    + calcularEficiencia7030() : Decimal
+    + sellarRastroInmutable() : Booleano
+  }
+}
+
+' ============================================================================
+' PAQUETE 4 — ALERTAS, GESTIÓN Y AUDITORÍA PMO (CU-02..CU-08)
+' ============================================================================
+package "Paquete 4 — Alertas, Gestión y Auditoría PMO" as P4 #F5F3FF {
+  class AlertaOperativa <<entity>> #EDE9FE {
+    - codigoAlerta : Texto
+    - motivo : MotivoAlerta
+    - mensajeEjecutivoClaro : Texto
+    - estado : EstadoAlerta
+    - /suprimidaAntiSpam24h : Booleano
+    --
+    + evaluarUmbralEn200ms() : Booleano
+    + verificarSupresion24Horas() : Booleano
+    + marcarEstadoGestion() : EstadoAlerta
+  }
+
+  class DespachoNotificacion <<entity>> #EDE9FE {
+    - codigoDespacho : Texto
+    - canal : CanalNotificacion
+    - destinatarioInstitucional : Texto
+    - cifradoTLSMinimo12 : Booleano = verdadero
+    - resultadoEntrega : Texto
+    --
+    + despacharCanalMensajeria() : Booleano
+    + escalarACorreoPorFallo() : Booleano
+    + registrarBitacora100PorCiento() : Vacio
+  }
+
+  class UsuarioGestion <<entity>> #EDE9FE {
+    - usuarioInstitucional : Texto
+    - rolAutorizado : Texto
+    - vistaUnicaSoloLectura : Booleano = verdadero
+    - filtrosCombinadosActivos : Texto
+    - cierreSesionMenos200ms : Booleano = verdadero
+    --
+    + autenticarSesionTLS13() : Booleano
+    + consultarYFiltrarTablero() : Lista<ExpedienteTrazabilidad>
+    + gestionarAlertaOperativa() : Booleano
+  }
+
+  class ReporteTrimestral <<entity>> #EDE9FE {
+    - codigoInforme : Texto
+    - periodoTrimestre : Texto
+    - totalProyectosPOA_REQ_INITI : Entero
+    - totalIncidentesGLPI : Entero
+    - /certificacionesATiempoVsAtrasadas : Texto
+    --
+    + consolidarMetricasTrimestre() : ReporteTrimestral
+    + exportarInformeEjecutivo() : Archivo
+  }
+}
+
+' ============================================================================
+' CATÁLOGO DE ENUMERACIONES DEL DOMINIO («enumeration»)
+' ============================================================================
+package "Catálogo de Enumeraciones del Dominio" as PE #F8FAFC {
+  enum ModuloCoreFinanciero {
+    FitSwitch
+    SWI
+    CanalesElectronicos
+    Credito
+    Antifraude
+    Nomina
+  }
+
+  enum EtapaOficial {
+    1_Analisis
+    2_Desarrollo
+    3_Certificacion
+    4_Despliegue
+    5_Estabilizacion
+  }
+
+  enum NivelComplejidad {
+    Baja_2pts
+    Media_5pts
+    Alta_13pts
+  }
+
+  enum NivelSemaforo {
+    Verde_Disponible
+    Amarillo_CargaOptima
+    Rojo_Sobreasignado
+  }
+
+  enum TipoCommit {
+    feat
+    fix
+    test
+    refactor
+  }
+
+  enum TipoEspecificacion {
+    REQ_Requerimiento
+    INI_TI_Iniciativa
+  }
+
+  enum EstadoAlerta {
+    Emitida
+    EnSeguimiento
+    Atendida
+    Suprimida24h
+  }
+
+  enum MotivoAlerta {
+    SobrecargaMayor40h
+    CertificacionMayor5Dias
+    RetornoPorFallo
+    IncidentePrioridad1
+    CambioPrioridadProyecto
+  }
+
+  enum CanalNotificacion {
+    CanalMensajeriaCorporativo
+    ServicioCorreoCorporativo
+  }
+
+  enum EstadoSincronizacion {
+    ConsolidadoCompleto
+    SincronizacionParcialSnapshot
+    TrabajoSinTrazabilidad
+    AbortadoPorRiesgoLOPDP
+  }
+}
+
+' ============================================================================
+' RELACIONES FORMALES UML 2.5.1 (MULTIPLICIDADES EN AMBOS EXTREMOS)
+' ============================================================================
+' --- Paquete 1: Jerarquía POA/PETI ---
+ModuloFinanciero "1" o-- "0..*" ProyectoPOA : agrupa
+ProyectoPOA "1" *-- "1..*" HistoriaSpec : compone
+HistoriaSpec "0..1" o-- "0..*" TareaIssue : desglosa
+
+' --- Paquete 1 <-> Paquete 2: Trazabilidad 4 niveles y Roles por Asociación ---
+TareaIssue "0..1" -- "0..*" ActividadCodigo : respalda en código (0 = RF-021)
+TareaIssue "0..1" -- "0..1" IncidenteSoporte : espejo GLPI #ID (0 = RF-022)
+Desarrollador "1" -- "0..*" TareaIssue : rol: asignado Redmine
+Desarrollador "1..*" -- "0..*" ActividadCodigo : rol: autor / revisor QA (+2 h)
+Desarrollador "1" -- "0..*" IncidenteSoporte : rol: soporte GLPI (4h / 8h)
+ActividadCodigo "1" *-- "0..*" ReporteCalidad : inspecciona calidad
+
+' --- Paquete 1 & 2 <-> Paquete 3: Consolidación, 5 Etapas y Eficiencia ---
+ModuloFinanciero "1" -- "0..*" ExpedienteTrazabilidad : organiza por módulo
+TareaIssue "1" -- "1" ExpedienteTrazabilidad : consolida en expediente
+ExpedienteTrazabilidad "1" *-- "1..5" HitoEtapa : compone 5 etapas
+ExpedienteTrazabilidad "1" *-- "1..*" IndicadorDesempeno : sella cálculo 70/30
+HitoEtapa "1" -- "0..*" RetornoFallo : registra retroceso
+RetornoFallo "0..*" -- "1" IndicadorDesempeno : descuenta (-10 pts)
+ReporteCalidad "0..*" -- "1" IndicadorDesempeno : penaliza (-5 pts)
+
+' --- Paquete 2 & 3 <-> Paquete 4: Alertas, Tablero y Reporte Trimestral ---
+Desarrollador "0..1" -- "0..*" AlertaOperativa : detona por sobrecarga (>40 h)
+HitoEtapa "0..1" -- "0..*" AlertaOperativa : detona por atraso (>5 d) o retorno
+AlertaOperativa "1" *-- "1..*" DespachoNotificacion : audita envío (100% RNF-004)
+UsuarioGestion "0..1" -- "0..*" AlertaOperativa : gestiona estado (CU-07)
+UsuarioGestion "1" -- "1..*" ExpedienteTrazabilidad : consulta y filtra (CU-04..06)
+UsuarioGestion "1" -- "0..*" ReporteTrimestral : exporta informe (CU-08)
+IndicadorDesempeno "1..*" -- "0..*" ReporteTrimestral : alimenta totales trimestrales
+
+' --- Dependencia estructural con catálogo de enumeraciones ---
+P1 ..> PE : <<use>>
+P3 ..> PE : <<use>>
+P4 ..> PE : <<use>>
+
+footer Vista Lógica UML 2.5.1 sincronizada 1:1 con docs/vista-logica-clases.md, docs/uml/vista-logica-clases.drawio y Vista de Procesos (Semana 5)
+@enduml

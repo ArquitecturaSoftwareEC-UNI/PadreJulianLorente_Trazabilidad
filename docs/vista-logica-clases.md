@@ -25,7 +25,7 @@ Para que el modelo de clases se interprete **a simple vista en menos de 5 segund
 
 ## 1. Compuerta 1 — Análisis Gramatical, Tarjeta de Filtro y Tabla de Depuración Arquitectónica
 
-Siguiendo las **Láminas 4, 6 y 10 de `Semana 04 - Presentacion.pdf`**, se analizaron las especificaciones narrativas de [especificaciones-casos-de-uso.md](file:///c:/Users/D%20E%20L%20L%20G%2015/Documents/Arquitectura%20de%20Software/PadreJulianLorente_Trazabilidad/docs/especificaciones-casos-de-uso.md), el diagrama de actividades [Diagrama_Actividades_Reto2.png](file:///c:/Users/D%20E%20L%20L%20G%2015/Documents/Arquitectura%20de%20Software/PadreJulianLorente_Trazabilidad/docs/Diagrama_Actividades_Reto2.png) y los `40 RF`.
+Siguiendo las **Láminas 4, 6 y 10 de `Semana 04 - Presentacion.pdf`**, se analizaron las especificaciones narrativas de [especificaciones-casos-de-uso.md](especificaciones-casos-de-uso.md), el diagrama de actividades [Diagrama_Actividades_Reto2.png](Diagrama_Actividades_Reto2.png) y los `40 RF`.
 
 ### 1.1 Descomposición Gramatical de los Escenarios Base
 - **Sustantivos (Candidatos a Clases o Atributos):** *Módulo financiero, Proyecto POA/PETI (Épica), Historia/Especificación (`REQ`/`INI.TI`), Tarea/Issue (`#ID`), Desarrollador, Actividad de código (rama, Merge Request, commit tipado), Incidente de soporte (`GLPI #ID`), Reporte de calidad (SonarQube), Expediente de trazabilidad, Hito de etapa, Retorno por fallo, Indicador de desempeño, Alerta operativa, Despacho de notificación, Usuario de gestión (Jefe de Desarrollo / PMO), Reporte trimestral, Tablero de control, Tarjeta de desarrollador, Mapa de calor, Embudo de 5 etapas, Etiqueta de filtro, Rango de fechas.*
@@ -143,12 +143,14 @@ Todo candidato se sometió a la **Tarjeta de Filtro (Lámina 4)** y a los **4 Ro
 
 ## 3. Compuerta 3 y Compuerta 4 — Diagrama de Clases UML 2.5.1 en 4 Paquetes Lógicos y Decisiones Críticas
 
-### 3.1 Artefactos Vectoriales e Imágenes Generadas (Draw.io CLI v32.7.4)
-- **Fuente Nativa Editable Draw.io:** [docs/uml/vista-logica-clases.drawio](file:///c:/Users/D%20E%20L%20L%20G%2015/Documents/Arquitectura%20de%20Software/PadreJulianLorente_Trazabilidad/docs/uml/vista-logica-clases.drawio)
-- **Exportación Vectorial SVG (con XML embebido `-e`):** [docs/uml/vista-logica-clases.drawio.svg](file:///c:/Users/D%20E%20L%20L%20G%2015/Documents/Arquitectura%20de%20Software/PadreJulianLorente_Trazabilidad/docs/uml/vista-logica-clases.drawio.svg)
-- **Exportación PNG de Alta Densidad (Escala `3x` / 300 DPI con `-e`):** [docs/uml/vista-logica-clases.drawio.png](file:///c:/Users/D%20E%20L%20L%20G%2015/Documents/Arquitectura%20de%20Software/PadreJulianLorente_Trazabilidad/docs/uml/vista-logica-clases.drawio.png) (y sincronizada en [docs/uml/diagrama-clases.png](file:///c:/Users/D%20E%20L%20L%20G%2015/Documents/Arquitectura%20de%20Software/PadreJulianLorente_Trazabilidad/docs/uml/diagrama-clases.png))
+### 3.1 Artefactos Vectoriales, PlantUML e Imágenes Generadas
+- **Fuente Nativa Editable Draw.io:** [docs/uml/vista-logica-clases.drawio](uml/vista-logica-clases.drawio)
+- **Exportación Vectorial SVG (Draw.io `-e`):** [docs/uml/vista-logica-clases.drawio.svg](uml/vista-logica-clases.drawio.svg)
+- **Exportación PNG de Alta Densidad (Draw.io `3x` / 300 DPI):** [docs/uml/vista-logica-clases.drawio.png](uml/vista-logica-clases.drawio.png)
+- **Código Fuente Reproducible PlantUML (Diagrama de Clases):** [docs/uml/diagrama-clases.puml](uml/diagrama-clases.puml) · [docs/uml/diagrama-clases.png](uml/diagrama-clases.png)
+- **Diagrama de Estados UML 2.5.1 (Ciclos de Vida Críticos):** [docs/uml/diagrama-estados.puml](uml/diagrama-estados.puml) · [docs/uml/diagrama-estados.png](uml/diagrama-estados.png)
 
-![Diagrama de Clases del Dominio en 4 Paquetes Lógicos (Draw.io 3x)](file:///c:/Users/D%20E%20L%20L%20G%2015/Documents/Arquitectura%20de%20Software/PadreJulianLorente_Trazabilidad/docs/uml/vista-logica-clases.drawio.png)
+![Diagrama de Clases del Dominio en 4 Paquetes Lógicos (Draw.io 3x)](uml/vista-logica-clases.drawio.png)
 
 ---
 
@@ -303,7 +305,7 @@ Todo candidato se sometió a la **Tarjeta de Filtro (Lámina 4)** y a los **4 Ro
   - `- /tieneBrechaEvidencia : Booleano` *(Derivado: `verdadero` si existe discrepancia entre Redmine y GitLab)*
 - **Operaciones Públicas:**
   - `+ unificarHistorial4Niveles() : ExpedienteTrazabilidad` — Correlaciona `ProyectoPOA`, `HistoriaSpec`, `TareaIssue`, `ActividadCodigo` e `IncidenteSoporte` de forma idempotente (`RNF-009`), reutilizando el último snapshot válido si una plataforma externa supera los `10 s` y `3 reintentos` (`RNF-008`, Flujo `2a`).
-  - `+ verificarCompuertaLOPDP() : Booleano` — Enmascara o suprime al `100%` cédulas, cuentas y correos particulares de socios antes de persistir (`RNF-017`, Excepción `3a`).
+  - `+ verificarCompuertaLOPDP() : Booleano` — Enmascara o suprime al `100%` cédulas, cuentas y correos particulares de socios antes de persistir, conservando la línea base técnica anonimizada durante al menos `24 meses` (`RNF-017`, Excepción `3a` y Excepción `2b` en `CU-06`).
   - `+ reconstruirCausaRaiz() : ExpedienteTrazabilidad` — Entrega en `< 10 s` (`RNF-007`) el desglose causal completo para auditoría en `CU-06` (`RF-010`).
 - **Multiplicidades Exactas:** Organizado en `1` `ModuloFinanciero`, vinculado a `1` `TareaIssue`, y compone fuertemente (`◆`) `1..5` `HitoEtapa` y `1..*` `IndicadorDesempeno`.
 - **Invariante (`RN-08`):** Ante caída temporal de una plataforma externa (Flujo `2a`), queda prohibido degradar falsamente las actividades previas a «sin trazabilidad»; se mantiene el último snapshot válido con su marca temporal (`RNF-008`).
